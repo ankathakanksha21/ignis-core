@@ -1,0 +1,6 @@
+* text=auto eol=lf
+
+# The PSI snapshot is stored byte for byte. Without this, Git on Windows would
+# rewrite line endings and the sha256 values in data/raw/manifest.json would
+# stop matching.
+data/raw/** -text

@@ -1,0 +1,157 @@
+{
+  "accession": "PSI-181",
+  "acknowledgments": "",
+  "approach": "The study examined three distinct solder alloys: the ISSI lead-based (40Pb-60Sn) composition, an off-eutectic 50Pb-50Sn formulation, and a lead-free alloy consisting of 95.5Sn-3.8Ag-0.7Cu.\nMicrostructural characterization was performed on four solder specimens processed in microgravity from the ISSI investigation, one terrestrial ISSI solder, and a freshly fabricated terrestrial 40wt%Pb-60wt%Sn sample. These analyses elucidated the role of suppressed buoyancy and natural convection in void formation within microgravity environments. Evidence of void-induced Marangoni convection influencing microstructure development was demonstrated using wire-feed solder processed in space. The micromechanical response of solders fabricated under both terrestrial and microgravity conditions was further evaluated across a broad thermal range (–157ºC to +121ºC), simulating the conditions encountered externally on the International Space Station. Investigations under cryogenic conditions focused on the β-to-α phase transformation in Sn below 13ºC, examining associated volumetric expansion, internal stress evolution, and the ductile-to-brittle transition phenomena observed in Sn-based alloys. At ambient temperature, the influence of accelerated aging on both microstructural stability and mechanical performance was assessed.",
+  "assays": [],
+  "contacts": [
+    {
+      "@id": "",
+      "affiliation": "Department of Material Science and Engineering - Iowa State University",
+      "comments": [],
+      "firstName": "Siddhartha",
+      "lastName": "Pathak",
+      "midInitials": "",
+      "roles": [
+        {
+          "@id": "dEBvA2jSs25xM9IfCv5ploF8MUDFt0ACKekf97KJ",
+          "annotationValue": "Principal Investigator (PI)",
+          "comments": [],
+          "termAccession": "Principal Investigator (PI)",
+          "termSource": ""
+        }
+      ]
+    },
+    {
+      "@id": "",
+      "affiliation": "Department of Material Science and Engineering - Iowa State University",
+      "comments": [],
+      "firstName": "Ralph",
+      "lastName": "Napolitano",
+      "midInitials": "E.",
+      "roles": [
+        {
+          "@id": "59J36d8A36ZR1iSs6NNVDRYelIkilTNb30me8Erm",
+          "annotationValue": "Co-Investigator (Co-I)",
+          "comments": [],
+          "termAccession": "Co-Investigator (Co-I)",
+          "termSource": ""
+        }
+      ]
+    },
+    {
+      "@id": "",
+      "affiliation": "Department of Material Science and Engineering - Iowa State University",
+      "comments": [],
+      "firstName": "Manish",
+      "lastName": "Kumar",
+      "midInitials": "",
+      "roles": [
+        {
+          "@id": "Bgtwhkzde1HdideTbrRZ3nYwqUIU2A12O88UQ6fg",
+          "annotationValue": "Graduate Student",
+          "comments": [],
+          "termAccession": "Graduate Student",
+          "termSource": ""
+        }
+      ]
+    },
+    {
+      "@id": "",
+      "affiliation": "Department of Material Science and Engineering - Iowa State University",
+      "comments": [],
+      "firstName": "Samuel",
+      "lastName": "Falana",
+      "midInitials": "",
+      "roles": [
+        {
+          "@id": "Bgtwhkzde1HdideTbrRZ3nYwqUIU2A12O88UQ6fg",
+          "annotationValue": "Graduate Student",
+          "comments": [],
+          "termAccession": "Graduate Student",
+          "termSource": ""
+        }
+      ]
+    }
+  ],
+  "description": "",
+  "dirty": null,
+  "doi": "10.60555/td9e-cz97",
+  "experimentHardware": "",
+  "experimentHardwareLink": "",
+  "experimentalTable": [
+    {
+      "_id": {
+        "$oid": "68a5c4bec325a653ef67525c"
+      },
+      "date_created": {
+        "$date": 1755694270659
+      },
+      "date_modified": {
+        "$date": 1755694270659
+      },
+      "file_name": "PSI-181_Experimental table_Experimental Table_PSI_181.csv",
+      "file_size": 688,
+      "remote_path": "/Home/psi-data/PSI-181/Experimental table/PSI-181_Experimental table_Experimental Table_PSI_181.csv",
+      "remote_url": "/datamanager/file/Home/psi-data/PSI-181/Experimental table/PSI-181_Experimental table_Experimental Table_PSI_181.csv",
+      "resource_id": {
+        "$oid": "66cf53d46f1142c964b2e0a8"
+      },
+      "restricted": false,
+      "s3_path": "psi-data/PSI-181/Experimental table/PSI-181_Experimental table_Experimental Table_PSI_181.csv",
+      "s3_version_id": "9Fl7IbWIvnjoxO_oaEkTaqKVoGiqlnU2",
+      "study_id": {
+        "$oid": "68a5c4bec325a653ef67528e"
+      },
+      "subcategory": "",
+      "version": 1,
+      "visible": true
+    }
+  ],
+  "experiments": [],
+  "factors": [],
+  "filesDisabled": null,
+  "flightProgram": "International Space Station (ISS)",
+  "funding": "NASA",
+  "hypothesis": "In microgravity environments, fluid dynamics are markedly constrained, predominantly governed by solidification-induced volumetric changes, thermally driven density gradients, and Marangoni convection. This suppression of fluid motion results in diminished mixing, causing voids and gas bubbles to remain entrapped within the solder joint during the solidification process. Such internal porosity critically impairs the solder’s thermal and electrical conductivity, while also compromising the mechanical robustness of the joint. To advance the feasibility of extended space missions, this study seeks to elucidate the fundamental mechanisms, observable phenomena, and process parameters that influence the structural and functional integrity of solder joints fabricated under terrestrial and microgravity conditions.",
+  "identifiers": [],
+  "images": [],
+  "investigationAcronym": "",
+  "investigationEndDate": "12-31-2022",
+  "investigationStartDate": "01-01-2020",
+  "licenseIdentifier": "CC0-1.0",
+  "licenseLink": "https://spdx.org/licenses/CC0-1.0.html",
+  "licenseName": "Creative Commons Zero v1.0 Universal",
+  "managingNasaCenter": "Marshall Space Flight Center (MSFC)",
+  "missionEnd": "",
+  "missionLink": "",
+  "missionName": "",
+  "missionStart": "",
+  "modifiedDate": "20-Aug-2025",
+  "objective": "This study addresses the reliability of solder joints in space by pursuing two principal objectives: (1) Characterization of solder-joint formation under microgravity conditions aboard the International Space Station, specifically examining the impact of suppressed convective flow and buoyancy on 40Pb-60Sn alloys utilized in the In-Space Soldering Investigation (ISSI). (2) Evaluation of the solder’s material and mechanical properties under extreme thermal environments, including elevated and cryogenic temperature exposures characteristic of spaceflight conditions.",
+  "organizations": [],
+  "payloads": [],
+  "projectIdentifier": "",
+  "projectLink": "",
+  "projectTitle": "",
+  "projectType": "Ground Investigation",
+  "proposalTitle": "Structure, Properties, and Performance of Solder Joints in Terrestrial vs. Reduced-Gravity Environments",
+  "public": true,
+  "publications": [],
+  "related_glds": "PSI-77",
+  "releaseDate": "20-Aug-2025",
+  "researchArea": "Materials Science",
+  "researchImpacts": "The research presented in this project offers significant contributions across multiple space exploration initiatives:\n\n(i) The project objectives are closely aligned with ongoing NASA initiatives focused on metal joining techniques in reduced gravity environments. The three solder alloys investigated—selected in collaboration with NASA partners, underscoring the relevance of the study to future space exploration efforts, (ii) The findings are expected to inform the design of future experiments responsive to forthcoming NASA proposal calls, including those associated with the Artemis program, which aims to return humans to the lunar surface, (iii) The insights gained into microgravity fluid behavior and surface tension variation can be extended to a broad range of spaceflight-enabling technologies, such as boiling, heat transfer, combustion, welding, brazing, and soldering. This research enhances the understanding of gravity-driven separation processes—such as gas bubble removal—that must be accomplished via alternative mechanisms in microgravity conditions. (iv) The gravity-level-specific protocols (GLSPs) developed for various soldering configurations serve as practical guidance for future investigations into metal joining techniques under reduced gravity. These protocols may be adopted by scientists and flight personnel for welding, brazing, and soldering applications in spaceflight environments.",
+  "restricted": false,
+  "sourceAccession": "",
+  "sourceLink": "",
+  "spaceProgram": "NASA, PSI grant",
+  "subResearchArea": "Microstructural Characterization, Terrestrial vs Microgravity Effects, Solder Joints",
+  "submissionDate": "17-Apr-2025",
+  "title": "Structure and Properties of Pb-Sn and Pb-free Sn-Ag-Cu Solders Produced in Terrestrial vs. Microgravity Environments under Extremes of Elevated and Cryo Temperatures",
+  "totalFileSize": 523321491502,
+  "version": 1,
+  "versionMessage": null,
+  "versionMessageLevel": null,
+  "versionMessageLocations": [],
+  "versionReason": "New data release"
+}

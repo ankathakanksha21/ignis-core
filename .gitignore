@@ -1,0 +1,27 @@
+# secrets: the language-model key lives in .env and is never committed
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# trained models are rebuilt from data/raw by `python -m ignis_ml.train`
+ml/artifacts/
+
+# node
+node_modules/
+frontend/dist/
+
+# editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

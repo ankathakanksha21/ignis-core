@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ignis-ml"
+version = "0.1.0"
+description = "Predictive models and simplified physics engine for Flame in Freefall (feature 6.3)"
+requires-python = ">=3.10"
+# Modelling libraries (scikit-learn, xgboost, ...) get added here by the 6.3
+# work. Pin exact versions when you add them, so both machines train the same
+# model from the same data.
+dependencies = [
+    "pydantic>=2.6,<3",
+    "pandas>=2.1,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

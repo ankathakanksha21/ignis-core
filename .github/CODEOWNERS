@@ -1,0 +1,21 @@
+# Who owns what. GitHub asks the listed people to review a pull request that
+# touches these paths. The last matching line wins, so the shared files at the
+# bottom override the folder lines above them.
+
+# Dashboard: features 6.1, 6.2, 6.4, 6.5
+/backend/                          @ankathakanksha21
+/frontend/                         @ankathakanksha21
+/data/processed/                   @ankathakanksha21
+
+# Models: feature 6.3
+/ml/                               @VDT37
+/backend/app/routers/predict.py    @VDT37
+/data/labels/                      @VDT37
+
+# Shared: the contract between the two halves. Both people approve changes.
+/ml/src/ignis_ml/contract.py       @ankathakanksha21 @VDT37
+/ml/src/ignis_ml/raw.py            @ankathakanksha21 @VDT37
+/docs/CONTRACTS.md                 @ankathakanksha21 @VDT37
+/data/raw/                         @ankathakanksha21 @VDT37
+/scripts/fetch_psi.py              @ankathakanksha21 @VDT37
+/.github/                          @ankathakanksha21 @VDT37
