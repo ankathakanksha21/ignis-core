@@ -70,7 +70,10 @@ RULES
 - A prediction or a simulation is never a measurement. Say which it is.
 - NASA has no combustion tests in partial gravity, so Moon and Mars gravity are always untested.
 - Never say that something is safe.
-- If the listener asks you to stop, stop talking."""
+- The listener may cut in at any moment. When they do, drop what you were saying and answer what they asked. Never go back to finish the explanation unless they ask you to.
+- If they only say stop, wait, or that they have a question, reply with just "Go ahead." and listen."""
+
+NOT_COVERED = "That is not in the data on this page. The Ask page searches all the records."
 
 
 def _env(name: str) -> str:
@@ -374,11 +377,35 @@ def _brief(kind: str, params_json: str) -> dict:
     }
 
 
+def answer(kind: str, params: dict, question: str, history: list[dict]) -> dict:
+    """A typed question answered from the page's facts, for when the ElevenLabs conversation is not in use.
+
+    Unlike a spoken answer, this one is checked before anyone hears it: a
+    number that is in neither the facts nor the listener's own words is refused.
+    """
+    brief = _brief(kind, json.dumps(params, sort_keys=True))
+    system = AGENT_PROMPT.replace("{{page}}", brief["title"]).replace("{{facts}}", "\n".join(brief["facts"]))
+    turns = [{"role": "assistant" if turn["role"] == "agent" else "user", "content": turn["text"]} for turn in history[-6:]]
+    messages = [{"role": "system", "content": system}, {"role": "assistant", "content": brief["script"]},
+                *turns, {"role": "user", "content": question}]  # fmt: skip
+    asked = " ".join([question, *(turn["text"] for turn in history if turn["role"] == "user")])
+    allowed = set(_NUMBER.findall(" ".join(brief["facts"]) + " " + brief["script"] + " " + asked))
+    for _ in range(2):  # one retry, telling the model which rule it broke
+        reply = " ".join(llm.chat(messages, max_tokens=220).split())
+        invented = sorted(set(_NUMBER.findall(reply)) - allowed)
+        if reply and not invented and not re.search(r"\bsafe\b", reply, re.I):
+            return {"text": reply, "checked": True}
+        why = f"these numbers are not in the facts: {', '.join(invented)}" if invented else "never say that something is safe"
+        messages += [{"role": "assistant", "content": reply},
+                     {"role": "user", "content": f"That broke a rule: {why}. Answer the question again."}]  # fmt: skip
+    return {"text": NOT_COVERED, "checked": True}
+
+
 def conversation_token() -> tuple[str | None, str | None]:
     """A one-conversation token for the ElevenLabs agent, or None and why there is none. The key never leaves the server."""
     key, agent = _env("ELEVENLABS_API_KEY"), _env("ELEVENLABS_AGENT_ID")
     if not key or not agent:
-        return None, "The ElevenLabs voice is not set up on this server, so the browser's own voice reads this and cannot answer questions."
+        return None, "The ElevenLabs voice is not set up on this server, so the browser's own voice reads this. Type a question to ask one."
     request = urllib.request.Request(
         f"{ELEVENLABS}/conversation/token?agent_id={urllib.parse.quote(agent)}", headers={"xi-api-key": key}
     )
@@ -386,7 +413,7 @@ def conversation_token() -> tuple[str | None, str | None]:
         with urllib.request.urlopen(request, timeout=20) as response:
             return json.loads(response.read())["token"], None
     except (urllib.error.URLError, TimeoutError, KeyError, ValueError):
-        return None, "ElevenLabs did not answer, so the browser's own voice reads this and cannot answer questions."
+        return None, "ElevenLabs did not answer, so the browser's own voice reads this. Type a question to ask one."
 
 
 def explain(kind: str, params: dict) -> dict:

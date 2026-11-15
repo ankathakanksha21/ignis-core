@@ -90,3 +90,19 @@ def test_bad_requests_are_refused():
     assert client.post("/api/voice/explain", json={"kind": "investigation", "params": {"psi_id": "PSI-0"}}).status_code == 404
     assert client.post("/api/voice/explain", json={"kind": "weather", "params": {}}).status_code == 422
     assert client.post("/api/voice/explain", json={"kind": "similar", "params": {}}).status_code == 422
+
+
+def test_a_typed_answer_is_checked_before_it_is_read_aloud(monkeypatch):
+    body = {"kind": "investigation", "params": {"psi_id": "PSI-69"}, "question": "How many tests, and is 50% oxygen covered?"}
+    assert client.post("/api/voice/answer", json=body).status_code == 503  # no language model in tests
+
+    replies = iter(["FLEX ran 999 tests.", "FLEX ran 274 tests. 50% oxygen is outside what it tested."])
+    seen = []
+    monkeypatch.setattr(voice.llm, "chat", lambda messages, **kwargs: (seen.append(messages), next(replies))[1])
+    found = client.post("/api/voice/answer", json={**body, "history": [{"role": "user", "text": "Stop there."}]}).json()
+    # 999 was refused. 274 is a fact, and 50 is allowed because the listener said it.
+    assert found == {"text": "FLEX ran 274 tests. 50% oxygen is outside what it tested.", "checked": True}
+    assert "Number of tests: 274" in seen[0][0]["content"] and body["question"] in [turn["content"] for turn in seen[0]]
+
+    monkeypatch.setattr(voice.llm, "chat", lambda messages, **kwargs: "It is 31337.")
+    assert client.post("/api/voice/answer", json=body).json()["text"] == voice.NOT_COVERED

@@ -26,6 +26,7 @@ type Brief = {
 type Line = { role: 'agent' | 'user'; text: string; unchecked: string[] }
 
 const NUMBER = /\d+(?:\.\d+)?/g
+const INTERRUPT = 'Stop there. I have a question.'
 const flat = (text: string) => text.replace(/\s+/g, ' ').trim()
 
 function Orb({ state }: { state: 'idle' | 'speaking' | 'listening' }) {
@@ -38,7 +39,7 @@ function Orb({ state }: { state: 'idle' | 'speaking' | 'listening' }) {
 
 /** The ElevenLabs conversation: it speaks the script first, and the listener can cut in at any point. */
 function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; onFail: (why: string) => void; onAsk: (text: string) => void }) {
-  const { startSession, endSession, sendUserMessage } = useConversationControls()
+  const { startSession, endSession, sendUserMessage, sendUserActivity } = useConversationControls()
   const { status } = useConversationStatus()
   const { isSpeaking } = useConversationMode()
   const { isMuted, setMuted } = useConversationInput()
@@ -53,7 +54,7 @@ function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; on
         const probe = await navigator.mediaDevices.getUserMedia({ audio: true })
         probe.getTracks().forEach((track) => track.stop())
       } catch {
-        if (live) onFail('The microphone is blocked, so the browser reads this aloud and cannot answer questions. Allow the microphone and reopen to talk.')
+        if (live) onFail('The microphone is blocked, so the browser reads this aloud and questions are typed. Allow the microphone and reopen to talk.')
         return
       }
       if (!live) return
@@ -64,7 +65,7 @@ function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; on
           dynamicVariables: { narration: brief.script, page: brief.title, facts: brief.facts.join('\n') },
         })
       } catch {
-        if (live) onFail('The voice did not connect, so the browser reads this aloud and cannot answer questions.')
+        if (live) onFail('The voice did not connect, so the browser reads this aloud and questions are typed.')
       }
     }, 0)
     return () => {
@@ -86,16 +87,35 @@ function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; on
   }
 
   const connected = status === 'connected'
+  // A sure way to cut in, for when the microphone does not pick the listener up over the speakers.
+  const interrupt = () => {
+    sendUserMessage(INTERRUPT)
+    onAsk(INTERRUPT)
+  }
   return (
     <>
       <div className="voice-status">
         <Orb state={!connected ? 'idle' : isSpeaking ? 'speaking' : 'listening'} />
         <p aria-live="polite">
-          {!connected ? 'Connecting…' : isSpeaking ? 'Speaking. Start talking to interrupt.' : isMuted ? 'Microphone off. Type a question below.' : 'Listening. Ask a question.'}
+          {!connected ? 'Connecting…' : isSpeaking ? 'Speaking. Talk over it, or press Interrupt.' : isMuted ? 'Microphone off. Type a question below.' : 'Listening. Ask a question.'}
         </p>
+        {connected && isSpeaking && (
+          <button type="button" className="primary" onClick={interrupt}>
+            Interrupt
+          </button>
+        )}
       </div>
       <form className="voice-ask" onSubmit={send}>
-        <input value={typed} onChange={(event) => setTyped(event.target.value)} placeholder="Or type a question" aria-label="Question" disabled={!connected} />
+        <input
+          value={typed}
+          onChange={(event) => {
+            setTyped(event.target.value)
+            sendUserActivity() // typing holds the voice back for a moment
+          }}
+          placeholder="Or type a question"
+          aria-label="Question"
+          disabled={!connected}
+        />
         <button type="submit" disabled={!connected || !typed.trim()}>
           Ask
         </button>
@@ -107,27 +127,53 @@ function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; on
   )
 }
 
-/** The browser's own voice: it reads the script and cannot answer. */
-function Read({ brief, note }: { brief: Brief; note: string | null }) {
+/**
+ * The browser's own voice. It reads the script, and the listener can stop it at
+ * any point and type a question, which the server answers from the page's facts.
+ */
+function Read({ brief, note, onAsk }: { brief: Brief; note: string | null; onAsk: (question: string) => Promise<string> }) {
   const [speaking, setSpeaking] = useState(false)
+  const [typed, setTyped] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState<string | null>(null)
   const able = typeof window !== 'undefined' && 'speechSynthesis' in window
 
-  const speak = () => {
+  const speak = (text: string = brief.script) => {
     if (!able) return
     window.speechSynthesis.cancel()
-    const words = new SpeechSynthesisUtterance(brief.script)
+    const words = new SpeechSynthesisUtterance(text)
     words.onend = () => setSpeaking(false)
     words.onerror = () => setSpeaking(false)
     window.speechSynthesis.speak(words)
     setSpeaking(true)
   }
   const stop = () => {
-    window.speechSynthesis.cancel()
+    if (able) window.speechSynthesis.cancel()
     setSpeaking(false)
+  }
+  const send = async (event: FormEvent) => {
+    event.preventDefault()
+    const question = typed.trim()
+    if (!question || busy) return
+    stop()
+    setTyped('')
+    setFailed(null)
+    setBusy(true)
+    try {
+      speak(await onAsk(question))
+    } catch (reason) {
+      setFailed(
+        (reason as Error).message.startsWith('503')
+          ? 'Questions need the language model key on the server.'
+          : 'Could not get an answer. Try again.',
+      )
+    } finally {
+      setBusy(false)
+    }
   }
 
   useEffect(() => {
-    const timer = setTimeout(speak, 0)
+    const timer = setTimeout(() => speak(), 0)
     return () => {
       clearTimeout(timer)
       if (able) window.speechSynthesis.cancel()
@@ -140,13 +186,22 @@ function Read({ brief, note }: { brief: Brief; note: string | null }) {
     <>
       <div className="voice-status">
         <Orb state={speaking ? 'speaking' : 'idle'} />
-        <p aria-live="polite">{!able ? 'This browser cannot read aloud. The explanation is below.' : speaking ? 'Reading aloud.' : 'Finished.'}</p>
+        <p aria-live="polite">
+          {busy ? 'Finding the answer…' : !able ? 'This browser cannot read aloud. The text is below.' : speaking ? 'Reading aloud. Press Interrupt to ask something.' : 'Ask a question below.'}
+        </p>
         {able && (
-          <button type="button" onClick={speaking ? stop : speak}>
-            {speaking ? 'Stop' : 'Replay'}
+          <button type="button" className={speaking ? 'primary' : ''} onClick={() => (speaking ? stop() : speak())}>
+            {speaking ? 'Interrupt' : 'Replay'}
           </button>
         )}
       </div>
+      <form className="voice-ask" onSubmit={send}>
+        <input value={typed} onFocus={stop} onChange={(event) => setTyped(event.target.value)} placeholder="Type a question" aria-label="Question" />
+        <button type="submit" disabled={busy || !typed.trim()}>
+          Ask
+        </button>
+      </form>
+      {failed && <p role="alert">{failed}</p>}
       {note && <p className="voice-note">{note}</p>}
     </>
   )
@@ -196,6 +251,15 @@ export default function VoicePanel({ kind, params, onClose }: { kind: VoiceKind;
     })
   }
 
+  // A typed question, answered by the server from the same facts and checked there before it is read aloud.
+  const askTyped = async (question: string) => {
+    add('user', question)
+    const history = heard.slice(-8).map(({ role, text }) => ({ role, text: text.slice(0, 1200) }))
+    const reply = await api<{ text: string }>('/voice/answer', { ...JSON.parse(request), question, history })
+    add('agent', reply.text)
+    return reply.text
+  }
+
   return (
     <aside className="voice-panel" role="dialog" aria-label="Voice guide">
       <header>
@@ -214,12 +278,12 @@ export default function VoicePanel({ kind, params, onClose }: { kind: VoiceKind;
           {brief.voice && !fallback ? (
             <ConversationProvider
               onMessage={(payload) => add(payload.role === 'user' ? 'user' : 'agent', payload.message)}
-              onError={() => setFallback('The voice connection failed, so the browser reads this aloud and cannot answer questions.')}
+              onError={() => setFallback('The voice connection failed, so the browser reads this aloud and questions are typed.')}
             >
               <Talk brief={brief} token={brief.voice.token} onFail={setFallback} onAsk={(text) => add('user', text)} />
             </ConversationProvider>
           ) : (
-            <Read brief={brief} note={fallback ?? brief.voice_note} />
+            <Read brief={brief} note={fallback ?? brief.voice_note} onAsk={askTyped} />
           )}
 
           <ul className="voice-highlights">
