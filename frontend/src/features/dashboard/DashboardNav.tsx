@@ -7,6 +7,7 @@ export function DashboardNav() {
         By pillar
       </NavLink>
       <NavLink to="/dashboard/rank">Rank for a mission</NavLink>
+      <NavLink to="/dashboard/compare">Compare</NavLink>
     </nav>
   )
 }

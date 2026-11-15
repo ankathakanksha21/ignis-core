@@ -108,6 +108,62 @@ def rank_investigations(request: RankRequest) -> dict:
     }
 
 
+def _points(psi_id: str) -> dict:
+    """Where an investigation's tests sit on oxygen against pressure.
+
+    A row is placed when it states one oxygen value or one pressure, so each
+    pair is certain. A row that lists several of both (a test matrix) is not
+    placed: the table does not say which pairs were run.
+    """
+    by_row: dict[tuple, dict[str, list]] = {}
+    for line in store.conditions():
+        if line["psi_id"] == psi_id and line["value"]:
+            cells = by_row.setdefault((line["file_name"], int(line["row"])), {})
+            ends = [float(line["value"])] + ([float(line["value_hi"])] if line["value_hi"] else [])
+            cells.setdefault(line["field"], []).extend(ends)
+            cells["approximate"] = cells.get("approximate", False) or line["approximate"] == "true"
+
+    placed: dict[tuple, dict] = {}
+    oxygen_only: dict[float, dict] = {}
+    not_placed = burner_fed = 0
+    for (_, row), cells in sorted(by_row.items()):
+        oxygen, pressure = cells.get("o2_mole_fraction", []), cells.get("pressure_kpa", [])
+        if not oxygen:
+            burner_fed += "burner_o2_mole_fraction" in cells
+            continue
+        if not pressure:
+            targets = [(oxygen_only, o2, {"o2": o2}) for o2 in oxygen]
+        elif len(oxygen) == 1 or len(pressure) == 1:
+            targets = [(placed, (o2, round(kpa, 1)), {"o2": o2, "pressure_kpa": round(kpa, 1)})
+                       for o2 in oxygen for kpa in pressure]  # fmt: skip
+        else:
+            not_placed += 1
+            continue
+        for group, key, values in targets:
+            point = group.setdefault(key, {**values, "rows": [], "approximate": False})
+            point["rows"].append(row)
+            point["approximate"] = point["approximate"] or cells["approximate"]
+
+    entry = store.investigations()[psi_id]
+    return {
+        "psi_id": psi_id,
+        "name": entry["name"],
+        "points": list(placed.values()),
+        "oxygen_only": list(oxygen_only.values()),
+        "rows_not_placed": not_placed,
+        "rows_burner_fed": burner_fed,
+    }
+
+
+@router.get("/points")
+def get_points(ids: str) -> dict:
+    wanted = [psi_id for psi_id in ids.split(",") if psi_id]
+    known = store.investigations()
+    if not 1 <= len(wanted) <= 3 or any(psi_id not in known or not known[psi_id]["in_scope"] for psi_id in wanted):
+        raise HTTPException(404, "Give one to three combustion investigation ids, separated by commas")
+    return {"series": [_points(psi_id) for psi_id in wanted]}
+
+
 @router.get("/{psi_id}")
 def get_investigation(psi_id: str) -> dict:
     entry = store.investigations().get(psi_id)
