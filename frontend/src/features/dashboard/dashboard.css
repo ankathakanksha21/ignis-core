@@ -569,3 +569,53 @@ dd {
 .notes li {
   margin: 0.15rem 0;
 }
+
+/* AI summaries */
+
+.ai-tag {
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--quiet);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ai-summary {
+  margin: 1rem 0;
+  padding: 0.2rem 1rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  max-width: 50rem;
+}
+
+.ai-summary h2 {
+  margin: 0.6rem 0 0;
+  line-height: 1;
+}
+
+.ai-summary q {
+  color: var(--quiet);
+  font-size: 0.9em;
+}
+
+.ai-summary ul {
+  margin: 0.2rem 0;
+  padding-left: 1.2rem;
+}
+
+.ranked .one-line {
+  grid-column: 2 / -1;
+  margin: 0;
+  color: var(--quiet);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .ranked .one-line {
+    grid-column: 1 / -1;
+  }
+}

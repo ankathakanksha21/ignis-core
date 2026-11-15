@@ -17,7 +17,13 @@ export function InvestigationCard({ card }: { card: Card }) {
         <span>{gravity(card)}</span>
         <span>{card.psi_id}</span>
       </p>
-      {card.objective_short && <p className="objective">{card.objective_short}</p>}
+      {card.ai_summary ? (
+        <p className="objective">
+          <span className="ai-tag">AI summary</span> {card.ai_summary.one_line}
+        </p>
+      ) : (
+        card.objective_short && <p className="objective">{card.objective_short}</p>
+      )}
       <dl>
         <dt>Tests</dt>
         <dd>{testCount(card)}</dd>
