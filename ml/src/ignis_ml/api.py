@@ -17,7 +17,7 @@ from .contract import (
     SimulateRequest,
     SimulateResponse,
 )
-from .models import cfig_hot_ignition, flex_burning_rate
+from .models import cfig_hot_ignition, flex_burning_rate, solid_flame_spread
 from .physics import droplet
 
 _PLANNED: dict[ModelId, dict] = {
@@ -49,6 +49,7 @@ _PLANNED: dict[ModelId, dict] = {
 _BUILT = {
     flex_burning_rate.MODEL_ID: flex_burning_rate,
     cfig_hot_ignition.MODEL_ID: cfig_hot_ignition,
+    solid_flame_spread.MODEL_ID: solid_flame_spread,
 }
 
 
