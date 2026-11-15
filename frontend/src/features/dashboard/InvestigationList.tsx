@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useApi } from '../../api/useApi.ts'
+import { DashboardNav } from './DashboardNav.tsx'
 import { InvestigationCard } from './InvestigationCard.tsx'
 import { PILLAR_NAMES } from './format.ts'
 import type { Listing } from './types.ts'
@@ -17,6 +18,7 @@ export function InvestigationList() {
   return (
     <section className="dashboard">
       <h1>Combustion investigations</h1>
+      <DashboardNav />
       <p className="lede">
         {data.investigations.length} investigations from NASA's PSI repository, grouped by fire safety pillar. The grouping is this
         project's, not NASA's. Open one to see where each value comes from.

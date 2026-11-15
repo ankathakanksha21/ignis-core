@@ -1,0 +1,12 @@
+import { NavLink } from 'react-router-dom'
+
+export function DashboardNav() {
+  return (
+    <nav className="dashboard-nav">
+      <NavLink to="/dashboard" end>
+        By pillar
+      </NavLink>
+      <NavLink to="/dashboard/rank">Rank for a mission</NavLink>
+    </nav>
+  )
+}
