@@ -164,4 +164,6 @@ Two refinements to `flex_burning_rate` went in with it. The low-high range is no
 
 Tried and not adopted: other model families for burning rate. Repeats of one FLEX condition differ from their own average by 0.045 mm²/s, and the model's error is 0.048, so it is already at the noise in the data.
 
+Data from outside PSI, on branch `feat/6.3-outside-check`: no ready-made dataset exists, but NASA/TM-2003-212553 tabulates 53 heptane droplet tests from a 1997 Spacelab experiment. They are copied into `ml/data/external/` (every row checked against the PDF text, see the README there) and read by `ml/src/ignis_ml/outside.py`. They are not training data: pooled with FLEX they made held-out FLEX error worse (0.048 to 0.056 mm²/s), because the two experiments used different hardware. They are used as an outside check in the `flex_burning_rate` card. Of 50 usable tests, 41 fall outside the FLEX range and would be withheld. On the 9 the model would answer the error is 0.24 mm²/s (median 0.12): 0.06 on the 4 DCE tests and 0.39 on the 5 FSDC tests. Citations and `trained_on` still point only at PSI, so no contract change was needed.
+
 What is left is the "Left out on purpose" list in section 4.
