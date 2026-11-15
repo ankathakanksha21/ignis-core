@@ -32,7 +32,7 @@ def test_the_card_is_available_and_says_what_it_was_trained_on(card):
     table = card.trained_on[0]
     assert (table.psi_id, table.file_name) == ("PSI-69", "PSI-69_Experimental table_FLEX.csv")
     assert table.doi == "10.60555/mbq8-0451"
-    assert table.n_rows == 257
+    assert table.n_rows == 255
 
 
 def test_the_card_ranges_are_the_training_rows_own(card):

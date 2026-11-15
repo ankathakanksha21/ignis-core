@@ -19,6 +19,7 @@ from functools import lru_cache
 
 import pandas as pd
 
+from ..flags import quality_flags
 from ..raw import KEY_COLUMNS, read_raw_table
 
 PSI_ID = "PSI-69"
@@ -105,11 +106,20 @@ def load_flex() -> FlexTable:
         approximate += [(row, header) for row, (_, flag) in zip(raw["row"], parsed) if flag]
     typed["pressure_kpa"] = typed["pressure_kpa"] * MMHG_TO_KPA
 
+    # Rows ingest flagged are left out, as docs/CONTRACTS.md asks. The two
+    # checks below it are this module's own and only matter for a row ingest
+    # did not flag, or before ingest has run at all.
+    flagged: dict[int, list[str]] = {}
+    for flag in quality_flags(PSI_ID, str(raw["file_name"].iloc[0])):
+        flagged.setdefault(flag.row, []).append(f"{flag.check} in '{flag.column}': {flag.detail}")
+
     excluded: list[Exclusion] = []
     keep = pd.Series(True, index=typed.index)
     for index, row in typed.iterrows():
         pressure_text = raw.at[index, SOURCE_COLUMNS["pressure_kpa"]].strip()
-        if not row["pressure_kpa"] > 0:
+        if int(row["row"]) in flagged:
+            reason = "flagged by ingest, " + "; ".join(flagged[int(row["row"])])
+        elif not row["pressure_kpa"] > 0:
             reason = f"ambient pressure is {pressure_text} mmHg, which is not a real pressure"
         elif abs(sum(row[gas] for gas in GASES) - 1) > 0.03:
             reason = f"gas mole fractions add up to {sum(row[gas] for gas in GASES):.2f}, not 1"
