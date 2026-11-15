@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTitle } from '../../useTitle.ts'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client.ts'
@@ -28,6 +29,7 @@ export function AskPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lit, setLit] = useState<number[]>([])
+  useTitle('Ask')
 
   const ask = (text: string) => {
     if (text.trim().length < 3 || busy) return
@@ -89,6 +91,7 @@ export function AskPage() {
 
       {error && <p role="alert">{error.startsWith('503') ? 'The language model is not set up on this server. Add the key to .env.' : `Could not answer: ${error}`}</p>}
 
+      {busy && <p className="loading">Reading NASA's records…</p>}
       {answer && !busy && (
         <>
           <div className="answer reveal">

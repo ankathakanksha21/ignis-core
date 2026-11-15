@@ -34,8 +34,11 @@ const IMPOSSIBLE: Simulation = {
   message: 'These settings cannot exist together: the gases would add up to more than 100%, or one would be below zero.',
 }
 const possible = (s: Settings) => s.oxygen >= 0 && s.co2 >= 0 && s.helium >= 0 && s.oxygen + s.co2 + s.helium <= 100
+// The server answers 422 for settings it will not accept. Any other failure is reported as a failure.
+const failed = (reason: Error): Simulation =>
+  reason.message.startsWith('422') ? IMPOSSIBLE : { ...IMPOSSIBLE, message: `The simulation could not run: ${reason.message}` }
 const simulate = (settings: Settings, extra = {}) =>
-  possible(settings) ? api<Simulation>('/simulate', toRequest(settings, extra)).catch(() => IMPOSSIBLE) : Promise.resolve(IMPOSSIBLE)
+  possible(settings) ? api<Simulation>('/simulate', toRequest(settings, extra)).catch(failed) : Promise.resolve(IMPOSSIBLE)
 const leftOver = (sim: Simulation) => Math.sqrt(sim.state?.d2_curve?.at(-1)?.d2_mm2 ?? 0)
 const leftText = (sim: Simulation) => (leftOver(sim) < 0.01 ? 'none, it burns away' : `${figure(leftOver(sim))} mm`)
 
@@ -239,7 +242,7 @@ export function DropletLab() {
       <ul className="unsupported">
         {UNSUPPORTED.map((item, index) => (
           <li key={item.name}>
-            <strong>{item.name}.</strong> {refused ? (refused[index] ?? 'Now available.') : ''}
+            <strong>{item.name}.</strong> {refused ? (refused[index]?.replace(/\s*Set flow_cm_s to 0\.$/, '') ?? 'Now available.') : ''}
           </li>
         ))}
       </ul>

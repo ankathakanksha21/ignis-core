@@ -1,9 +1,11 @@
-import { NavLink, Route, Routes } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { useTitle } from '../../useTitle.ts'
 import { DropletLab } from './DropletLab.tsx'
 import { Explorer } from './Explorer.tsx'
 import './lab.css'
 
 export function LabPage() {
+  useTitle('Lab')
   return (
     <section className="lab">
       <header className="hero">
@@ -21,6 +23,7 @@ export function LabPage() {
       <Routes>
         <Route index element={<DropletLab />} />
         <Route path="explore" element={<Explorer />} />
+        <Route path="*" element={<Navigate to="/lab" replace />} />
       </Routes>
     </section>
   )

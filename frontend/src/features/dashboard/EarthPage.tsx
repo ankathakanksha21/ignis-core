@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+import { useTitle } from '../../useTitle.ts'
 import { Link } from 'react-router-dom'
 import { useApi } from '../../api/useApi.ts'
 import { DashboardNav } from './DashboardNav.tsx'
@@ -15,6 +16,7 @@ function Names({ people }: { people: Who[] }) {
 
 export function EarthPage() {
   const { data, error } = useApi<EarthPanel>('/investigations/earth')
+  useTitle('On Earth')
 
   return (
     <section className="dashboard earth">
@@ -27,7 +29,7 @@ export function EarthPage() {
         <DashboardNav />
       </header>
       {error && <p role="alert">Could not load the Earth uses: {error}</p>}
-      {!data && !error && <p>Loading…</p>}
+      {!data && !error && <p className="loading">Loading…</p>}
 
       {data && (
         <>

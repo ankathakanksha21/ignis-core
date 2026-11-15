@@ -65,7 +65,7 @@ export function Result({ card, result }: { card: ModelCard; result: Prediction }
           <strong>Something is missing.</strong>
         </p>
       )}
-      {result.message && <p className="message">{result.message}</p>}
+      {result.message && <p className="message">{pretty(result.message)}</p>}
 
       {result.nearest_tests.length > 0 && (
         <>

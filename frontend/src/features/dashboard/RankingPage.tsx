@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTitle } from '../../useTitle.ts'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
@@ -51,6 +52,7 @@ export function RankingPage() {
   const [ranking, setRanking] = useState<Ranking | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pillar, setPillar] = useState('all')
+  useTitle('Rank for a mission')
 
   const defaults = setup ? Object.fromEntries(setup.factors.map((f) => [f.id, f.weight])) : {}
   const current = settings ?? (setup ? settingsFor(setup.missions[0], defaults) : null)
@@ -76,7 +78,7 @@ export function RankingPage() {
   }, [request])
 
   if (setupError) return <p role="alert">Could not load the missions: {setupError}</p>
-  if (!setup || !current) return <p>Loading…</p>
+  if (!setup || !current) return <p className="loading">Loading…</p>
 
   const mission = setup.missions.find((m) => m.id === current.mission)!
   const shown = (ranking?.results ?? []).filter((result) => pillar === 'all' || result.pillar === pillar)

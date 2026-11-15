@@ -37,7 +37,7 @@ export function Explorer() {
   const [hover, setHover] = useState<{ row: FlexRow; x: number; y: number } | null>(null)
 
   if (error) return <p role="alert">Could not load the FLEX tests: {error}</p>
-  if (!data) return <p>Loading…</p>
+  if (!data) return <p className="loading">Loading…</p>
 
   const field = (key: string) => data.fields.find((f) => f.key === key)!
   const points = data.rows.filter((row) => typeof row[xKey] === 'number' && typeof row[yKey] === 'number')

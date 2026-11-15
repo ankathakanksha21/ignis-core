@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTitle } from '../../useTitle.ts'
 import { Link } from 'react-router-dom'
 import { useApi } from '../../api/useApi.ts'
 import { AtmospheresNav } from './AtmospheresNav.tsx'
@@ -18,9 +19,10 @@ export function QualityPage() {
   const { data, error } = useApi<Report>('/atmospheres/quality')
   const [investigation, setInvestigation] = useState('all')
   const [check, setCheck] = useState('all')
+  useTitle('Data quality')
 
   if (error) return <p role="alert">Could not load the data quality report: {error}</p>
-  if (!data) return <p>Loading…</p>
+  if (!data) return <p className="loading">Loading…</p>
 
   const shown = data.flags.filter((f) => (investigation === 'all' || f.psi_id === investigation) && (check === 'all' || f.check === check))
   const reasons = new Map<string, number>()

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTitle } from '../../useTitle.ts'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
@@ -20,6 +21,7 @@ export function SimilarPage() {
   const [found, setFound] = useState<Similar | null>(null)
   const [error, setError] = useState<string | null>(null)
   const request = JSON.stringify(inputs)
+  useTitle('Similar tests')
 
   useEffect(() => {
     const typed: Inputs = JSON.parse(request)

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTitle } from '../../useTitle.ts'
 import { useApi } from '../../api/useApi.ts'
 import { DashboardNav } from './DashboardNav.tsx'
 import { InvestigationCard } from './InvestigationCard.tsx'
@@ -8,9 +9,10 @@ import type { Listing } from './types.ts'
 export function InvestigationList() {
   const { data, error } = useApi<Listing>('/investigations')
   const [fuelClass, setFuelClass] = useState('all')
+  useTitle('Experiments')
 
   if (error) return <p role="alert">Could not load the investigations: {error}</p>
-  if (!data) return <p>Loading…</p>
+  if (!data) return <p className="loading">Loading…</p>
 
   const classes = ['all', ...new Set(data.investigations.flatMap((card) => (card.fuel_class ? [card.fuel_class] : [])))]
   const shown = data.investigations.filter((card) => fuelClass === 'all' || card.fuel_class === fuelClass)
