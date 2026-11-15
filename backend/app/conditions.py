@@ -79,3 +79,52 @@ def nearest(fuel_class: str, o2: float, pressure_kpa: float) -> dict | None:
     if best:
         del best["_rank"]
     return best
+
+
+@lru_cache(maxsize=1)
+def _rows() -> list[dict]:
+    """Every test and summary row with the conditions it states, as (low, high) pairs."""
+    stated: dict[tuple, dict[str, list]] = {}
+    for line in store.conditions():
+        if line["value"] and line["field"] in TOLERANCE:
+            low = float(line["value"])
+            pairs = stated.setdefault((line["psi_id"], line["file_name"], line["row"]), {}).setdefault(line["field"], [])
+            pairs.append((low, float(line["value_hi"]) if line["value_hi"] else low))
+    names = {psi_id: entry["name"] for psi_id, entry in store.investigations().items()}
+    return [
+        {"psi_id": row["psi_id"], "name": names[row["psi_id"]], "file_name": row["file_name"], "row": int(row["row"]),
+         "row_kind": row["row_kind"], "fuel_class": row["fuel_class"], "fuel": row["fuel"] or None,
+         "stated": stated.get((row["psi_id"], row["file_name"], row["row"]), {})}
+        for row in store.rows() if row["row_kind"] != "other"
+    ]  # fmt: skip
+
+
+def similar(query: dict[str, float], fuel_class: str | None = None, limit: int = 15) -> list[dict]:
+    """The real rows closest to a set of conditions, across investigations.
+
+    A row is compared on the conditions it states. Rows that state every
+    condition asked for come first; a row that states none is left out.
+    Distance is in tolerances: 1 means one full tolerance away.
+    """
+    found = []
+    for row in _rows():
+        if fuel_class and row["fuel_class"] != fuel_class:
+            continue
+        gaps = {}
+        for field, wanted in query.items():
+            pairs = row["stated"].get(field)
+            if pairs:
+                nearest = min(0.0 if low <= wanted <= high else min(abs(wanted - low), abs(wanted - high)) for low, high in pairs)
+                gaps[field] = nearest / TOLERANCE[field]
+        if not gaps:
+            continue
+        values = {field: {"min": min(low for low, _ in pairs), "max": max(high for _, high in pairs)}
+                  for field, pairs in row["stated"].items()}  # fmt: skip
+        found.append({
+            **{key: row[key] for key in ("psi_id", "name", "file_name", "row", "row_kind", "fuel_class", "fuel")},
+            "values": values,
+            "not_stated": [field for field in query if field not in gaps],
+            "distance": round(hypot(*gaps.values()), 3),
+        })  # fmt: skip
+    found.sort(key=lambda r: (len(r["not_stated"]), r["distance"], r["psi_id"], r["row"]))
+    return found[:limit]

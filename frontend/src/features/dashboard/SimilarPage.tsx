@@ -1,0 +1,136 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { api } from '../../api/client.ts'
+import { useApi } from '../../api/useApi.ts'
+import { DashboardNav } from './DashboardNav.tsx'
+import { NOT_STATED, range } from './format.ts'
+import type { Missions, Similar } from './types.ts'
+
+const FIELDS = [
+  { field: 'o2_mole_fraction', label: 'Oxygen', unit: '%', scale: 100 },
+  { field: 'pressure_kpa', label: 'Pressure', unit: 'kPa', scale: 1 },
+  { field: 'flow_cm_s', label: 'Flow', unit: 'cm/s', scale: 1 },
+]
+
+type Inputs = { o2_mole_fraction: string; pressure_kpa: string; flow_cm_s: string; fuel_class: string }
+
+export function SimilarPage() {
+  const { data: setup } = useApi<Missions>('/investigations/missions')
+  const [inputs, setInputs] = useState<Inputs>({ o2_mole_fraction: '30', pressure_kpa: '70.3', flow_cm_s: '', fuel_class: '' })
+  const [found, setFound] = useState<Similar | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const request = JSON.stringify(inputs)
+
+  useEffect(() => {
+    const typed: Inputs = JSON.parse(request)
+    const body: Record<string, number | string> = {}
+    for (const { field, scale } of FIELDS) {
+      const value = Number(typed[field as keyof Inputs])
+      if (typed[field as keyof Inputs] !== '' && Number.isFinite(value)) body[field] = value / scale
+    }
+    if (typed.fuel_class) body.fuel_class = typed.fuel_class
+    if (Object.keys(body).filter((key) => key !== 'fuel_class').length === 0) return
+    let live = true
+    api<Similar>('/investigations/similar', body).then(
+      (result) => live && (setFound(result), setError(null)),
+      (reason: Error) => live && setError(reason.message),
+    )
+    return () => {
+      live = false
+    }
+  }, [request])
+
+  const change = (patch: Partial<Inputs>) => setInputs({ ...inputs, ...patch })
+
+  return (
+    <section className="dashboard similar">
+      <h1>Find similar tests</h1>
+      <DashboardNav />
+      <p className="lede">Enter conditions and see the real NASA test rows closest to them, across every investigation. Leave a box empty to ignore it.</p>
+
+      {setup && (
+        <p className="filter">
+          Fill from:{' '}
+          {setup.missions.map((m) => (
+            <button key={m.id} onClick={() => change({ o2_mole_fraction: String(m.o2_mole_fraction * 100), pressure_kpa: String(m.pressure_kpa) })}>
+              {m.label}
+            </button>
+          ))}
+        </p>
+      )}
+      <p className="conditions">
+        {FIELDS.map(({ field, label, unit }) => (
+          <label key={field}>
+            {label}{' '}
+            <input type="number" min={0} step="any" value={inputs[field as keyof Inputs]} onChange={(event) => change({ [field]: event.target.value })} /> {unit}
+          </label>
+        ))}
+        <label>
+          Fuel class{' '}
+          <select value={inputs.fuel_class} onChange={(event) => change({ fuel_class: event.target.value })}>
+            <option value="">any</option>
+            {['solid', 'droplet', 'gas', 'smoke'].map((name) => (
+              <option key={name}>{name}</option>
+            ))}
+          </select>
+        </label>
+      </p>
+
+      {error && <p role="alert">Could not search: {error}</p>}
+      {found?.nothing_close && (
+        <p className="gap-warning">
+          No real test is close to these conditions. The nearest rows are below, so you can see how far away they are.
+        </p>
+      )}
+      {found && (
+        <div className="scroll">
+          <table className="side-by-side similar-table">
+            <thead>
+              <tr>
+                <th>Test</th>
+                <th>Fuel</th>
+                {FIELDS.map(({ label }) => (
+                  <th key={label}>{label}</th>
+                ))}
+                <th>Closeness</th>
+              </tr>
+            </thead>
+            <tbody>
+              {found.results.map((row) => {
+                const closeness = Math.round(Math.max(0, 1 - row.distance) * 100)
+                return (
+                  <tr key={`${row.file_name}-${row.row}`}>
+                    <td>
+                      <Link to={`/dashboard/${row.psi_id}`}>{row.name}</Link>, row {row.row}
+                      {row.row_kind === 'summary' && <small> summary row</small>}
+                    </td>
+                    <td>{row.fuel ?? NOT_STATED}</td>
+                    {FIELDS.map(({ field, unit, scale }) => (
+                      <td key={field} className={row.values[field] ? '' : 'missing'}>
+                        {range(row.values[field], scale, unit)}
+                      </td>
+                    ))}
+                    <td>
+                      <div className="meter" title={`${closeness} of 100`}>
+                        <div style={{ width: `${closeness}%` }} />
+                      </div>
+                      {closeness}
+                      {row.not_stated.length > 0 && <small> compared without {row.not_stated.map((f) => FIELDS.find((x) => x.field === f)?.label.toLowerCase()).join(' and ')}</small>}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {found && (
+        <p className="quiet">
+          Closeness is 100 for an exact match and falls to 0 one tolerance away:{' '}
+          {FIELDS.filter(({ field }) => found.tolerance[field]).map(({ field, unit, scale }) => `${found.tolerance[field] * scale} ${unit === '%' ? 'oxygen points' : unit}`).join(', ')}
+          . Rows that state everything you asked for come first.
+        </p>
+      )}
+    </section>
+  )
+}

@@ -210,3 +210,49 @@
   color: var(--quiet);
   font-size: 0.9rem;
 }
+
+/* Tabs and the data quality tables */
+
+.sub-nav {
+  display: flex;
+  gap: 1.2rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.sub-nav a {
+  padding-bottom: 0.4rem;
+  color: var(--quiet);
+  text-decoration: none;
+}
+
+.sub-nav a.active {
+  border-bottom: 2px solid currentColor;
+  color: inherit;
+  font-weight: 600;
+}
+
+.atmospheres .pickers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.8rem;
+}
+
+.atmospheres .pickers select {
+  max-width: 100%;
+  font: inherit;
+}
+
+.atmospheres .scroll {
+  overflow-x: auto;
+}
+
+.atmospheres table.wide {
+  min-width: 46rem;
+  max-width: none;
+}
+
+.atmospheres td {
+  vertical-align: top;
+}

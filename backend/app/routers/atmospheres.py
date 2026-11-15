@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException
 
-from .. import gaps
+from .. import gaps, quality
 
 router = APIRouter(prefix="/atmospheres", tags=["atmospheres"])
 
@@ -17,3 +17,8 @@ def get_gap_map(habitat: str = "moon") -> dict:
     if habitat not in gaps.HABITATS:
         raise HTTPException(404, f"Unknown habitat {habitat!r}")
     return gaps.gap_map(habitat)
+
+
+@router.get("/quality")
+def get_quality_report() -> dict:
+    return quality.report()

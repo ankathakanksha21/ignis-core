@@ -113,6 +113,29 @@ def rank_investigations(request: RankRequest) -> dict:
     }
 
 
+class SimilarRequest(BaseModel):
+    # Leave a condition out to ignore it.
+    o2_mole_fraction: float | None = Field(default=None, ge=0, le=1)
+    pressure_kpa: float | None = Field(default=None, gt=0)
+    flow_cm_s: float | None = Field(default=None, ge=0)
+    fuel_class: str | None = None
+
+
+@router.post("/similar")
+def find_similar(request: SimilarRequest) -> dict:
+    query = {field: value for field in ranking.TOLERANCE if (value := getattr(request, field)) is not None}
+    if not query:
+        raise HTTPException(422, "Give at least one of oxygen, pressure or flow")
+    results = conditions.similar(query, request.fuel_class)
+    return {
+        "query": query,
+        "tolerance": {field: ranking.TOLERANCE[field] for field in query},
+        "results": results,
+        # True when even the closest row is more than one tolerance away, or states less than was asked.
+        "nothing_close": not results or results[0]["distance"] > 1 or bool(results[0]["not_stated"]),
+    }
+
+
 @router.get("/points")
 def get_points(ids: str) -> dict:
     wanted = [psi_id for psi_id in ids.split(",") if psi_id]

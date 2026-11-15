@@ -50,7 +50,7 @@ FACTORS = {
 DEFAULT_WEIGHTS = {"oxygen": 3.0, "pressure": 2.0, "fuel": 3.0, "gravity": 1.0, "pillar": 1.0}
 
 # A match scores 1 at the target and falls in a straight line to 0 this far away.
-TOLERANCE = {"o2_mole_fraction": 0.10, "pressure_kpa": 35.0}
+TOLERANCE = {"o2_mole_fraction": 0.10, "pressure_kpa": 35.0, "flow_cm_s": 10.0}
 
 FUEL_RELEVANCE = {
     "solid": (1.0, "Cabin materials are solids."),

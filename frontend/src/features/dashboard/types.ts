@@ -126,3 +126,20 @@ export type PointSeries = {
   rows_not_placed: number
   rows_burner_fed: number
 }
+
+// Shape returned by /api/investigations/similar.
+
+export type SimilarRow = {
+  psi_id: string
+  name: string
+  file_name: string
+  row: number
+  row_kind: string
+  fuel_class: string | null
+  fuel: string | null
+  values: Record<string, Range>
+  not_stated: string[]
+  distance: number
+}
+
+export type Similar = { results: SimilarRow[]; nothing_close: boolean; tolerance: Record<string, number> }
