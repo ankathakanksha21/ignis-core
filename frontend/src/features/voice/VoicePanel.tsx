@@ -186,10 +186,13 @@ export default function VoicePanel({ kind, params, onClose }: { kind: VoiceKind;
   const add = (role: Line['role'], text: string) => {
     const said = flat(text)
     if (!said || (brief && role === 'agent' && said === flat(brief.script))) return // the script is already shown
-    const unchecked = role === 'agent' ? [...new Set(said.match(NUMBER) ?? [])].filter((number) => !known.has(number)) : []
     setHeard((before) => {
       const last = before[before.length - 1]
-      return last && last.role === role && last.text === said ? before : [...before, { role, text: said, unchecked }]
+      if (last && last.role === role && last.text === said) return before
+      // A number the listener said themself may be repeated back, so those count as known too.
+      const asked = new Set(before.filter((line) => line.role === 'user').flatMap((line) => line.text.match(NUMBER) ?? []))
+      const numbers = role === 'agent' ? [...new Set(said.match(NUMBER) ?? [])] : []
+      return [...before, { role, text: said, unchecked: numbers.filter((number) => !known.has(number) && !asked.has(number)) }]
     })
   }
 

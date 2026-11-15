@@ -10,7 +10,8 @@ listener can cut in and ask questions. The agent is given the same facts and
 told to answer from them alone. Its spoken answers cannot be checked before
 they are heard, so the page checks their numbers as the transcript arrives.
 
-    python -m app.voice        creates the ElevenLabs agent (run from backend/)
+    python -m app.voice        creates the ElevenLabs agent, or updates its prompt
+                               once ELEVENLABS_AGENT_ID is in .env (run from backend/)
 """
 
 from __future__ import annotations
@@ -64,6 +65,7 @@ These were computed by code from NASA's tables and records. They are the only th
 RULES
 - Answer in one to three short sentences, in plain spoken words.
 - Use only the facts above. Copy any number exactly as it appears there. Never calculate, round or estimate a number.
+- Write every number in digits, such as 274 and 34%, never in words. The page checks your digits against the facts.
 - If the facts do not answer the question, say "That is not in the data on this page" and suggest the Ask page, which searches all the records.
 - A prediction or a simulation is never a measurement. Say which it is.
 - NASA has no combustion tests in partial gravity, so Moon and Mars gravity are always untested.
@@ -433,5 +435,25 @@ def create_agent() -> int:
     return 0
 
 
+def update_agent() -> int:
+    """Send the prompt in this file to the agent that already exists, after the prompt was edited."""
+    key, agent = _env("ELEVENLABS_API_KEY"), _env("ELEVENLABS_AGENT_ID")
+    body = {"conversation_config": {"agent": {"prompt": {"prompt": AGENT_PROMPT}}}}
+    request = urllib.request.Request(
+        f"{ELEVENLABS}/agents/{urllib.parse.quote(agent)}", data=json.dumps(body).encode(), method="PATCH",
+        headers={"xi-api-key": key, "Content-Type": "application/json"},
+    )  # fmt: skip
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            saved = json.loads(response.read())
+    except urllib.error.HTTPError as error:
+        print(f"ElevenLabs refused ({error.code}): {error.read().decode(errors='replace')[:600]}")
+        return 1
+    stored = saved.get("conversation_config", {}).get("agent", {}).get("prompt", {}).get("prompt")
+    print("Updated the agent's prompt." if stored == AGENT_PROMPT else "ElevenLabs answered, but the stored prompt differs from this file.")
+    return 0 if stored == AGENT_PROMPT else 1
+
+
 if __name__ == "__main__":
-    sys.exit(create_agent())
+    # With an agent id in .env the agent exists, so its prompt is updated. Without one, the agent is created.
+    sys.exit(update_agent() if _env("ELEVENLABS_AGENT_ID") else create_agent())
