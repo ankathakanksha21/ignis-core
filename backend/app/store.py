@@ -30,6 +30,11 @@ def flags() -> list[dict]:
     return _csv("quality_flags.csv")
 
 
+@lru_cache(maxsize=1)
+def conditions() -> list[dict]:
+    return _csv("conditions.csv")
+
+
 @lru_cache(maxsize=None)
 def columns(psi_id: str, file_name: str) -> list[dict]:
     """Each column of a raw table: how many test rows fill it and how many

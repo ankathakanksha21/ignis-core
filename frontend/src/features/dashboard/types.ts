@@ -65,3 +65,43 @@ export type Detail = Card & {
   tables: Table[]
   flags: Flag[]
 }
+
+// Shapes returned by /api/investigations/missions and /rank (backend/app/ranking.py).
+
+export type Mission = {
+  id: string
+  label: string
+  o2_mole_fraction: number
+  pressure_kpa: number
+  gravity_g: number
+  basis: string
+  assumed: string | null
+}
+
+export type Missions = {
+  missions: Mission[]
+  factors: { id: string; label: string; weight: number }[]
+  tolerance: { o2_mole_fraction: number; pressure_kpa: number }
+  fuel_relevance: { fuel_class: string; score: number; why: string }[]
+}
+
+export type Factor = {
+  id: string
+  label: string
+  score: number
+  weight: number
+  unknown: boolean
+  detail: string
+  source: { file_name: string; row: number; column: string; raw: string } | null
+}
+
+export type Ranked = {
+  psi_id: string
+  name: string
+  pillar: string
+  fuel_class: string | null
+  score: number
+  factors: Factor[]
+}
+
+export type Ranking = { edited: string[]; results: Ranked[] }

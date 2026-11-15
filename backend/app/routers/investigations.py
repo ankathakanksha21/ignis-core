@@ -3,8 +3,9 @@
 from collections import Counter
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 
-from .. import catalog, store
+from .. import catalog, ranking, store
 
 router = APIRouter(prefix="/investigations", tags=["investigations"])
 
@@ -61,6 +62,49 @@ def list_investigations() -> dict:
             {"psi_id": e["psi_id"], "title": e["title"], "reason": e["out_of_scope_reason"]}
             for e in entries if not e["in_scope"]
         ],  # fmt: skip
+    }
+
+
+class RankRequest(BaseModel):
+    mission: str
+    # Leave these out to use the mission's own profile.
+    o2_mole_fraction: float | None = Field(default=None, ge=0, le=1)
+    pressure_kpa: float | None = Field(default=None, gt=0)
+    gravity_g: float | None = Field(default=None, ge=0, le=1)
+    weights: dict[str, float] = {}
+
+
+@router.get("/missions")
+def list_missions() -> dict:
+    return {
+        "missions": [{"id": key, **mission} for key, mission in ranking.MISSIONS.items()],
+        "factors": [{"id": key, "label": label, "weight": ranking.DEFAULT_WEIGHTS[key]}
+                    for key, label in ranking.FACTORS.items()],
+        "tolerance": ranking.TOLERANCE,
+        "fuel_relevance": [{"fuel_class": key, "score": score, "why": why}
+                           for key, (score, why) in ranking.FUEL_RELEVANCE.items()],
+    }  # fmt: skip
+
+
+@router.post("/rank")
+def rank_investigations(request: RankRequest) -> dict:
+    mission = ranking.MISSIONS.get(request.mission)
+    if mission is None:
+        raise HTTPException(404, f"Unknown mission {request.mission!r}")
+    unknown = set(request.weights) - set(ranking.FACTORS)
+    if unknown or any(not 0 <= weight <= 5 for weight in request.weights.values()):
+        raise HTTPException(422, "Weights are 0 to 5, one per factor: " + ", ".join(ranking.FACTORS))
+
+    profile = {key: mission[key] for key in ("o2_mole_fraction", "pressure_kpa", "gravity_g")}
+    edits = {key: value for key in profile if (value := getattr(request, key)) is not None and value != profile[key]}
+    profile.update(edits)
+    weights = {**ranking.DEFAULT_WEIGHTS, **request.weights}
+    return {
+        "mission": request.mission,
+        "profile": profile,
+        "edited": sorted(edits),
+        "weights": weights,
+        "results": ranking.rank(profile, weights),
     }
 
 
