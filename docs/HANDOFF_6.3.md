@@ -9,7 +9,7 @@ To start a session: open it on `ankathakanksha21/ignis-core` and say "Read docs/
 - The project is "Flame in Freefall", a NASA Space Apps 2026 dashboard over NASA's microgravity combustion experiments (the PSI repository).
 - Two people build it. @ankathakanksha21 builds the dashboard (features 6.1, 6.2, 6.4, 6.5 and data ingest). You build 6.3: the predictive models and a simplified physics engine.
 - Your work is a standalone Python package, `ml/` (`ignis_ml`). It needs no backend, frontend, Node or API key.
-- The rest of the app calls three functions in `ml/src/ignis_ml/api.py`. `flex_burning_rate` and the droplet scenario of `simulate()` are real on `main`. `cfig_hot_ignition` is built on branch `feat/6.3-cfig-ignition`. The other models and the solid scenario still answer `not_implemented`, which is a valid response the dashboard already handles.
+- The rest of the app calls three functions in `ml/src/ignis_ml/api.py`. `flex_burning_rate`, `cfig_hot_ignition` and the droplet scenario of `simulate()` are real on `main`. The solid matcher, `solid_flame_spread`, is built on branch `feat/6.3-solid-matcher`. `flex_extinction`, `cfig_cool_flame` and the solid scenario still answer `not_implemented`, which is a valid response the dashboard already handles.
 - The plan is one model per fuel class (droplet, gas, solid), as the problem statement says.
 - The data is already in the repository at `data/raw/`. Nothing to download.
 - Ingest has landed. `data/processed/quality_flags.csv` lists the suspicious cells, and the models leave flagged rows out of training. `data/processed/rows.csv` marks each raw row as `test`, `summary` or `other`.
@@ -53,8 +53,8 @@ One short branch per line, each merged by pull request before the next starts.
 | --- | --- | --- | --- | --- |
 | 1 | `feat/6.3-flex-burning-rate` | droplet | Regression of droplet burning rate on FLEX (PSI-69), plus the shared pieces. | Merged. |
 | 2 | `feat/6.3-physics-d2` | droplet | `simulate()` for the droplet scenario using the d² law, calibrated on FLEX. | Merged. The combustion lab (6.4) can call it. |
-| 3 | `feat/6.3-cfig-ignition` | gas | Classification of hot ignition (yes or no) on the CFI-G Normal Flames table only (PSI-159, 179 tests, label filled in every row). | Built on `feat/6.3-cfig-ignition`, on top of the contract branch `contract/add-cfig-hot-ignition`. Merge the contract pull request first. |
-| 4 | `feat/6.3-solid-matcher` | solid | Nearest real tests for a solid-fuel query over BASS-II (PSI-25, 129 tests) and Saffire (PSI-98, -99, -100, 13 tests). A matcher, not a trained model. It reuses `nearest.py`. | Not started. |
+| 3 | `feat/6.3-cfig-ignition` | gas | Classification of hot ignition (yes or no) on the CFI-G Normal Flames table only (PSI-159, 179 tests, label filled in every row). | Merged, with its contract change. |
+| 4 | `feat/6.3-solid-matcher` | solid | Nearest real tests for a solid-fuel query over BASS-II (PSI-25, 129 tests) and Saffire (PSI-98, -99, -100, 13 tests). A matcher, not a trained model. It reuses `nearest.py`. | Built, pull request not opened yet. |
 
 ### Left out on purpose
 
@@ -146,14 +146,16 @@ open a pull request into main, wait for CI, squash and merge, delete the branch
 
 ## 8. Next task
 
-Steps 1 and 2 are merged. Step 3 is built and waits for two pull requests, in this order: `contract/add-cfig-hot-ignition`, then `feat/6.3-cfig-ignition`.
+Steps 1 to 3 are merged. Step 4 is built on `feat/6.3-solid-matcher` and waits for its pull request. That completes the plan in section 4: one model per fuel class, plus the droplet physics.
 
 How step 2 works, in `ml/src/ignis_ml/physics/droplet.py`: the burning-rate constant is the `flex_burning_rate` model's value for the requested conditions, so the engine and the model cannot disagree. The flame-out diameter is the median over the 5 nearest real tests of the same fuel that recorded an extinction diameter, and those tests are the ones cited. Checked against FLEX, the law's burn time is a median 0.95 of the measured one across 154 tests that ended in extinction.
 
 How step 3 turned out, in `ml/src/ignis_ml/models/cfig_hot_ignition.py`: 177 of 179 tests are used (rows 69 and 77 had no fuel flowing). Inputs are the fuel species (butane, ethane, propane), oxygen, pressure, the fuel fraction fed (`Xf`) and the fuel flow (`mHC (mg/s)`). Gradient-boosted trees serve the answers. Scored with repeats of one setup kept together, accuracy is 0.85 against 0.75 for the majority class and macro F1 is 0.78 against 0.43. Scored with a whole test day held out, it does no better than the majority class (accuracy 0.73 against 0.75). The card states this: the model fills in between settings that were run and does not carry over to a day with different settings.
 
-Then step 4, the solid matcher, on a new branch from `main`:
+How step 4 turned out, in `ml/src/ignis_ml/models/solid_flame_spread.py`: inputs are a material family and an oxygen level. It searches 121 tests (BASS-II 112, Saffire-II 7, Saffire-I 2) and returns the nearest ones of that material with their cells verbatim. It never returns a burned or did-not-burn answer, and its `ok` response carries an empty prediction, so the dashboard should show the nearest tests and the message for a card whose task is `matcher`. Left out: 17 BASS-II rows flagged by ingest, 2 Saffire-II tests with no material and both Saffire-III tests, which state no oxygen. Oxygen above 0.222 is withheld for every material, which is the exploration-atmosphere gap. Three things to know:
 
-1. Add a features module for BASS-II and Saffire: typed rows with the row key, only rows ingest marks as `test`, flagged rows left out through `flags.py`.
-2. Add `ml/src/ignis_ml/models/solid_flame_spread.py`: no training, only `nearest.py` over the inputs both tables share (material, oxygen, flow where stated). Its card has task `matcher` and no evaluation.
-3. `predict()` returns `withheld` for an untested material or an out-of-range input, and otherwise the nearest real tests. It never returns a burned or did-not-burn label, because BASS-II has no outcome column.
+- It reads material, oxygen and row kind from ingest's `data/processed/rows.csv`, so both halves parse those cells one way. If that file's columns change, the tests in `ml/tests/test_solid_matcher.py` fail.
+- A material family is taken only from a word in the cell. The 45 BASS-II tests whose cell says only "rod" are filed under `rod`, not `pmma`, because the table does not name the rod material.
+- Airflow is not an input. BASS-II records fan settings, not a speed.
+
+What is left is the "Left out on purpose" list in section 4, cheapest first: the `flex_extinction` classifier.
