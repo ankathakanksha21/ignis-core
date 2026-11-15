@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { ComparePage } from './ComparePage.tsx'
+import { EarthPage } from './EarthPage.tsx'
 import { InvestigationDetail } from './InvestigationDetail.tsx'
 import { InvestigationList } from './InvestigationList.tsx'
 import { RankingPage } from './RankingPage.tsx'
@@ -13,6 +14,7 @@ export function DashboardPage() {
       <Route path="rank" element={<RankingPage />} />
       <Route path="compare" element={<ComparePage />} />
       <Route path="similar" element={<SimilarPage />} />
+      <Route path="earth" element={<EarthPage />} />
       <Route path=":psiId" element={<InvestigationDetail />} />
     </Routes>
   )

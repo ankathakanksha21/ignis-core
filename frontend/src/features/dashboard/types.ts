@@ -143,3 +143,13 @@ export type SimilarRow = {
 }
 
 export type Similar = { results: SimilarRow[]; nothing_close: boolean; tolerance: Record<string, number> }
+
+export type Who = { psi_id: string; name: string }
+
+export type EarthPanel = {
+  field: string
+  themes: { id: string; label: string; quotes: { text: string; investigations: Who[] }[] }[]
+  not_quoted: Who[]
+  spinoffs: { product: string; sources: { title: string; publication: string; url: string; quotes: string[] }[] }[]
+  spinoffs_checked: string
+}
