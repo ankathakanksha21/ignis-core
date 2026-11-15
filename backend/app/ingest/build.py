@@ -2,7 +2,7 @@
 
     rows.csv             every non-empty raw row, once: test, summary or other
     conditions.csv       every condition value read from a cell, with its source
-    quality_flags.csv    every suspicious cell (format fixed by docs/CONTRACTS.md)
+    quality_flags.csv    every suspicious cell
     investigations.json  one entry per investigation: record text, tables, ranges
 
 The build is deterministic: same snapshot in, same bytes out. The files are

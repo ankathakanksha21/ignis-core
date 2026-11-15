@@ -1,9 +1,9 @@
 """Ingest's quality flags, read from data/processed/quality_flags.csv.
 
-The dashboard side writes that file (format in docs/CONTRACTS.md), one line
-per suspicious cell. The models leave flagged rows out of training, so both
-halves agree on which rows are bad. Before ingest has run the file does not
-exist, and this returns nothing.
+Ingest writes that file, one line per suspicious cell. The models leave
+flagged rows out of training, so the app and the models agree on which rows
+are bad. Before ingest has run the file does not exist, and this returns
+nothing.
 """
 
 from __future__ import annotations

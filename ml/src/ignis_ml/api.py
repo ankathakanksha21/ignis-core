@@ -1,8 +1,7 @@
 """The three functions the rest of the app calls. Nothing else in ml/ is public.
 
-On main these are placeholders that answer "not_implemented", which is a valid
-contract response, so the backend and the UI can be built against them today.
-The 6.3 work replaces the bodies; the signatures stay.
+A model that is not built answers "not_implemented", which is a valid
+response the app already handles.
 """
 
 from __future__ import annotations

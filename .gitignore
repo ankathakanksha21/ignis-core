@@ -25,3 +25,8 @@ frontend/dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Working notes, kept on our own machines and not in the repository
+CONTRIBUTING.md
+docs/CONTRACTS.md
+docs/HANDOFF_6.3.md
