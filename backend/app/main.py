@@ -1,7 +1,6 @@
 """Application entry point.
 
-Every feature's router is already registered here, so feature work happens
-inside the feature's own router file and this file should not need editing.
+Every feature has its own router file under routers/, registered here.
 
     uvicorn app.main:app --reload --port 8000      (run from backend/)
 """

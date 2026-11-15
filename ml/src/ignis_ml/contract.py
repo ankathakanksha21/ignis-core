@@ -1,8 +1,6 @@
-"""The contract between the 6.3 models and the rest of the app.
+"""The request and response types shared by the models and the rest of the app.
 
-This file is jointly owned. Everything else in ml/ can change freely, but a
-change here changes what the dashboard receives, so it goes through a pull
-request that both people approve. docs/CONTRACTS.md explains it in prose.
+A change here changes what the app receives.
 
 Units are fixed so nobody converts twice:
 

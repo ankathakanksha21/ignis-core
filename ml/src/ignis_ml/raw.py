@@ -1,7 +1,7 @@
 """Read the PSI snapshot in data/raw/ with one agreed row numbering.
 
-Jointly owned, like contract.py: both halves of the project key every test on
-(psi_id, file_name, row), so both must number rows the same way.
+Every part of the project keys a test on (psi_id, file_name, row), so every
+part must number rows the same way.
 """
 
 from __future__ import annotations

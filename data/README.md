@@ -1,10 +1,10 @@
 # Data
 
-| Folder | Holds | Written by |
+| Folder | Holds | Made by |
 | --- | --- | --- |
-| `raw/` | PSI snapshot, exactly as served | `scripts/fetch_psi.py` only |
-| `processed/` | Typed, checked tables | ingest: `cd backend && python -m app.ingest` |
-| `labels/` | Labels mined from NASA reports, each with its source | the 6.3 work |
+| `raw/` | PSI snapshot, exactly as served | `python scripts/fetch_psi.py` |
+| `processed/` | Typed, checked tables | `cd backend && python -m app.ingest` |
+| `labels/` | Reserved for labels read from NASA reports. Empty. | |
 
 ## raw
 

@@ -6,8 +6,7 @@ import { DashboardPage } from './features/dashboard/DashboardPage.tsx'
 import { LabPage } from './features/lab/LabPage.tsx'
 import { ModelsPage } from './features/models/ModelsPage.tsx'
 
-// Every feature page is already registered here, so feature work happens
-// inside src/features/<name>/ and this file should not need editing.
+// One entry per page. Each page lives in src/features/<name>/.
 const pages = [
   { path: '/dashboard', label: 'Experiments', element: <DashboardPage /> },
   { path: '/atmospheres', label: 'Habitats', element: <AtmospheresPage /> },

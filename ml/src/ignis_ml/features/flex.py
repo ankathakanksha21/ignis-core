@@ -106,9 +106,9 @@ def load_flex() -> FlexTable:
         approximate += [(row, header) for row, (_, flag) in zip(raw["row"], parsed) if flag]
     typed["pressure_kpa"] = typed["pressure_kpa"] * MMHG_TO_KPA
 
-    # Rows ingest flagged are left out, as docs/CONTRACTS.md asks. The two
-    # checks below it are this module's own and only matter for a row ingest
-    # did not flag, or before ingest has run at all.
+    # Rows ingest flagged are left out. The two checks below it are this
+    # module's own and only matter for a row ingest did not flag, or before
+    # ingest has run at all.
     flagged: dict[int, list[str]] = {}
     for flag in quality_flags(PSI_ID, str(raw["file_name"].iloc[0])):
         flagged.setdefault(flag.row, []).append(f"{flag.check} in '{flag.column}': {flag.detail}")

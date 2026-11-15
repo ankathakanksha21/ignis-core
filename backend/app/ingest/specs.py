@@ -18,7 +18,7 @@ MMHG_TO_KPA = 101.325 / 760
 BAR_TO_KPA = 100.0
 PERCENT = 0.01
 
-# Canonical fields, in output order. Units follow docs/CONTRACTS.md.
+# Canonical fields, in output order. Units follow ignis_ml.contract.
 FIELDS = (
     "o2_mole_fraction",  # oxygen in the atmosphere around the flame
     "burner_o2_mole_fraction",  # oxygen in the gas fed through the burner (inverse flames)

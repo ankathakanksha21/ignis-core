@@ -14,16 +14,6 @@ It is a research and teaching aid, not a certified safety tool. Numbers come fro
 | Lab | A simulated burning droplet beside the real tests, and plots of the real data. |
 | Ask | Questions answered from NASA's records, with a source on every sentence. |
 
-## Who owns what
-
-| Path | What | Owner |
-| --- | --- | --- |
-| `backend/` | FastAPI app, one router per feature | @ankathakanksha21 |
-| `frontend/` | React app, one folder per feature | @ankathakanksha21 |
-| `ml/` | Models and physics engine (6.3) | @VDT37 |
-| `data/raw/` | PSI snapshot, written only by `scripts/fetch_psi.py` | both |
-| `data/processed/` | Output of ingest | @ankathakanksha21 |
-
 ## Run it
 
 Needs Python 3.10+ and Node 20+.
@@ -63,9 +53,8 @@ Copy `.env.example` to `.env` and add the key. `.env` is git-ignored. Never comm
 
 ## More
 
-- [How we work](CONTRIBUTING.md)
-- [Contract between the two halves](docs/CONTRACTS.md)
 - [The data](data/README.md)
+- [The models](ml/README.md)
 - [Problem statement](docs/PROBLEM_STATEMENT.md)
 
 The data is from NASA's [PSI](https://psi.nasa.gov) repository. Each investigation is cited by its DOI.
