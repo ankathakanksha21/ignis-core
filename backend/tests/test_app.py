@@ -54,3 +54,17 @@ def test_detail_shows_what_varied_and_where_values_came_from():
     assert detail["tables"][0]["fields"]["pressure_kpa"]["source_column"] == "Ambient pressure; mmHg"
     assert {other["name"] for other in detail["shares_hardware"]["with"]} == {"CFI", "FLEX-2"}
     assert client.get("/api/investigations/PSI-108").status_code == 404
+
+
+def test_chart_points_place_only_rows_whose_oxygen_and_pressure_pair_is_certain():
+    series = {s["psi_id"]: s for s in client.get("/api/investigations/points?ids=PSI-69,PSI-25,PSI-68").json()["series"]}
+    flex = series["PSI-69"]
+    assert sum(len(point["rows"]) for point in flex["points"]) == 273  # 274 tests minus the one at 0 mmHg
+    # FLEX burned droplets at 30% oxygen and about 10.3 psi, close to the Moon-base atmosphere
+    assert any(point["o2"] == 0.3 and 70 < point["pressure_kpa"] < 73 for point in flex["points"])
+    bass2 = series["PSI-25"]  # states oxygen but no pressure
+    assert bass2["points"] == [] and sum(len(point["rows"]) for point in bass2["oxygen_only"]) == 129
+    assert series["PSI-68"]["rows_not_placed"] == 8  # FLEX-2 lists oxygen levels and pressures separately
+    cfig = client.get("/api/investigations/points?ids=PSI-159").json()["series"][0]
+    assert cfig["rows_burner_fed"] == 154 and all(point["o2"] <= 0.4 for point in cfig["points"])
+    assert client.get("/api/investigations/points?ids=PSI-108").status_code == 404

@@ -170,6 +170,13 @@ export function RankingPage() {
         ))}
       </p>
       {error && <p role="alert">Could not rank: {error}</p>}
+      {shown.length >= 2 && (
+        <p>
+          <Link to={`/dashboard/compare?ids=${shown.slice(0, 3).map((result) => result.psi_id).join(',')}&mission=${current.mission}`}>
+            Compare the top {Math.min(3, shown.length)}
+          </Link>
+        </p>
+      )}
       <ol className="ranked">
         {shown.map((result, index) => (
           <li key={result.psi_id}>

@@ -74,6 +74,7 @@ export type Mission = {
   o2_mole_fraction: number
   pressure_kpa: number
   gravity_g: number
+  open_ended: boolean
   basis: string
   assumed: string | null
 }
@@ -105,3 +106,16 @@ export type Ranked = {
 }
 
 export type Ranking = { edited: string[]; results: Ranked[] }
+
+// Shapes returned by /api/investigations/points.
+
+export type Point = { o2: number; pressure_kpa?: number; rows: number[]; approximate: boolean }
+
+export type PointSeries = {
+  psi_id: string
+  name: string
+  points: Point[]
+  oxygen_only: Point[]
+  rows_not_placed: number
+  rows_burner_fed: number
+}

@@ -10,8 +10,9 @@ from __future__ import annotations
 from . import catalog, store
 
 PSI_TO_KPA = 6.894757
-_EARTH_AIR = {"o2_mole_fraction": 0.21, "pressure_kpa": round(14.7 * PSI_TO_KPA, 1)}
-_EXPLORATION = {"o2_mole_fraction": 0.30, "pressure_kpa": round(10.2 * PSI_TO_KPA, 1)}
+_EARTH_AIR = {"o2_mole_fraction": 0.21, "pressure_kpa": round(14.7 * PSI_TO_KPA, 1), "open_ended": False}
+# "or more" and "or less": the brief gives this atmosphere as bounds, not a point.
+_EXPLORATION = {"o2_mole_fraction": 0.30, "pressure_kpa": round(10.2 * PSI_TO_KPA, 1), "open_ended": True}
 _EXPLORATION_BASIS = "The brief expects habitats at 30% oxygen or more and 10.2 psi or less."
 
 MISSIONS = {
