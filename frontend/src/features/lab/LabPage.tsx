@@ -1,8 +1,22 @@
+import { NavLink, Route, Routes } from 'react-router-dom'
+import { DropletLab } from './DropletLab.tsx'
+import { Explorer } from './Explorer.tsx'
+import './lab.css'
+
 export function LabPage() {
   return (
-    <section>
+    <section className="lab">
       <h1>Combustion lab</h1>
-      <p>Feature 6.4: the interactive simulation, preset scenarios and the pattern explorer.</p>
+      <nav className="sub-nav">
+        <NavLink to="/lab" end>
+          Droplet lab
+        </NavLink>
+        <NavLink to="/lab/explore">Pattern explorer</NavLink>
+      </nav>
+      <Routes>
+        <Route index element={<DropletLab />} />
+        <Route path="explore" element={<Explorer />} />
+      </Routes>
     </section>
   )
 }
