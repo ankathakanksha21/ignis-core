@@ -133,7 +133,7 @@ export function ConditionsChart({ series, mission }: { series: PointSeries[]; mi
               <span>
                 {hover.point.rows.length === 1 ? 'Row' : `${hover.point.rows.length} rows:`} {hover.point.rows.slice(0, 6).join(', ')}
                 {hover.point.rows.length > 6 && '…'}
-                {hover.point.approximate && '. Approximate.'}
+                {hover.point.approximate && ' (approximate)'}
               </span>
             </div>
           )}
