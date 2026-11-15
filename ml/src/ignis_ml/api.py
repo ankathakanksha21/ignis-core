@@ -32,6 +32,11 @@ _PLANNED: dict[ModelId, dict] = {
     "cfig_cool_flame": dict(
         title="Cool flame occurrence", fuel_class="gas", task="classification",
         target="cool flame", classes=["yes", "no"],
+        notes="Not planned: only 8 of the 179 CFI-G Normal Flames rows carry a cool-flame label, too few to train on.",
+    ),
+    "cfig_hot_ignition": dict(
+        title="Gas flame hot ignition", fuel_class="gas", task="classification",
+        target="hot ignition", classes=["yes", "no"],
     ),
     "solid_flame_spread": dict(
         title="Flame spread on solids", fuel_class="solid", task="matcher",
