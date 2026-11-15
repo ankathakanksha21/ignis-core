@@ -619,3 +619,45 @@ dd {
     grid-column: 1 / -1;
   }
 }
+
+/* Similar tests */
+
+.conditions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.2rem;
+}
+
+.conditions input {
+  width: 5rem;
+  font: inherit;
+}
+
+.conditions select {
+  font: inherit;
+}
+
+.gap-warning {
+  padding: 0.5rem 0.8rem;
+  border-left: 4px solid var(--prevention);
+  background: color-mix(in srgb, var(--prevention) 8%, transparent);
+}
+
+.similar-table {
+  min-width: 44rem;
+  table-layout: auto;
+}
+
+.similar-table .meter {
+  display: inline-block;
+  width: 5rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.similar-table small {
+  display: block;
+  border: 0;
+  padding: 0;
+  color: var(--quiet);
+}
