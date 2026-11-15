@@ -17,9 +17,13 @@ export function InvestigationList() {
 
   return (
     <section className="dashboard">
-      <p className="eyebrow">NASA PSI · {data.investigations.length} investigations</p>
-      <h1>Fire in microgravity</h1>
-      <DashboardNav />
+      <header className="hero">
+        <p className="eyebrow">{data.investigations.length} NASA experiments</p>
+        <h1>
+          How fire burns <span className="dim">without gravity.</span>
+        </h1>
+        <DashboardNav />
+      </header>
       <p className="filter">
         {classes.map((name) => (
           <button key={name} className={name === fuelClass ? 'on' : ''} onClick={() => setFuelClass(name)}>
@@ -47,7 +51,7 @@ export function InvestigationList() {
       })}
 
       <p className="quiet left-out">
-        The pillar grouping is this project's, not NASA's. Left out of the PSI search results:{' '}
+        The four groups are ours, not NASA's. Left out:{' '}
         {data.left_out.map((item) => `${item.title} (${item.psi_id}). ${item.reason}`).join(' ')}
       </p>
     </section>

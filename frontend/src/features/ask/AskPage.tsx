@@ -65,9 +65,13 @@ export function AskPage() {
 
   return (
     <section className="ask">
-      <p className="eyebrow">Answers with citations</p>
-      <h1>Ask the data</h1>
-      <p className="lede">A language model answers from NASA's records only. Every sentence cites its source.</p>
+      <header className="hero">
+        <p className="eyebrow">Ask</p>
+        <h1>
+          Ask <span className="dim">the data.</span>
+        </h1>
+        <p className="lede">Answers come from NASA's records. Every sentence shows its source.</p>
+      </header>
 
       <form onSubmit={submit}>
         <input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask a question" maxLength={400} aria-label="Question" />
@@ -87,7 +91,7 @@ export function AskPage() {
 
       {answer && !busy && (
         <>
-          <div className="answer">
+          <div className="answer reveal">
             <h2>{answer.question}</h2>
             {answer.sentences.map((sentence) => (
               <p key={sentence.text} onPointerEnter={() => setLit(sentence.cites)} onPointerLeave={() => setLit([])}>

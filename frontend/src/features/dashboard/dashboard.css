@@ -1,9 +1,9 @@
 /* Dashboard pages. Colours and fonts come from index.css. */
 
-.pillar-prevention { --accent: var(--prevention); }
-.pillar-detection { --accent: var(--detection); }
-.pillar-suppression { --accent: var(--suppression); }
-.pillar-science { --accent: var(--science); }
+.pillar-prevention { --pillar: var(--prevention); }
+.pillar-detection { --pillar: var(--detection); }
+.pillar-suppression { --pillar: var(--suppression); }
+.pillar-science { --pillar: var(--science); }
 
 /* By pillar */
 
@@ -19,13 +19,13 @@
 }
 
 .pillar > p {
-  margin: 0 0 0.9rem;
+  margin: 0 0 1.6rem;
 }
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: 1.25rem;
 }
 
 .card {
@@ -33,7 +33,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 1.1rem 1.2rem 1rem;
+  padding: 1.5rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -44,23 +44,50 @@
 }
 
 .card:hover {
-  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-  background: var(--surface-2);
-  transform: translateY(-2px);
+  border-color: var(--line-strong);
+  transform: translateY(-3px);
+}
+
+/* The arrow fills with orange when the card is pointed at. */
+.go {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  margin: -0.3rem -0.3rem 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  transition:
+    background 0.25s,
+    color 0.25s,
+    border-color 0.25s,
+    transform 0.25s;
+}
+
+.go svg {
+  width: 15px;
+  height: 15px;
+}
+
+.card:hover .go {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+  transform: rotate(45deg);
 }
 
 .card-top {
   display: flex;
-  justify-content: space-between;
-  margin: 0 0 0.5rem;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0 0 1.4rem;
   color: var(--faint);
-  font: 500 0.68rem var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
 }
 
 .pillar-name {
-  color: var(--accent);
+  color: var(--pillar);
 }
 
 .pillar-name::before {
@@ -69,7 +96,7 @@
   height: 6px;
   margin-right: 0.4rem;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--pillar);
   vertical-align: 0.1em;
   content: '';
 }
@@ -78,8 +105,8 @@
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  font: 600 1.12rem/1.25 var(--font-display);
-  letter-spacing: -0.01em;
+  font: 400 1.4rem/1.2 var(--font-display);
+  letter-spacing: -0.02em;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -87,6 +114,7 @@
 
 .card h3 a {
   color: var(--text);
+  text-decoration: none;
 }
 
 /* The whole card opens the investigation. */
@@ -103,20 +131,20 @@
 
 .objective {
   display: -webkit-box;
-  margin: 0.5rem 0 0;
+  margin: 0.6rem 0 0;
   overflow: hidden;
-  color: var(--muted);
-  font-size: 0.88rem;
+  color: var(--faint);
+  font-size: 0.95rem;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .stats {
   display: flex;
-  gap: 1.6rem;
+  gap: 2rem;
   margin: auto 0 0;
-  padding-top: 1rem;
+  padding-top: 1.6rem;
 }
 
 .stats div {
@@ -125,8 +153,8 @@
 
 .stats dd {
   margin: 0;
-  font: 600 1.25rem/1.2 var(--font-display);
-  letter-spacing: -0.01em;
+  font: 400 1.6rem/1.2 var(--font-display);
+  letter-spacing: -0.03em;
   white-space: nowrap;
 }
 
@@ -139,21 +167,6 @@
 .stats dt {
   color: var(--faint);
   font-size: 0.75rem;
-}
-
-.foot {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin: 0.9rem 0 0;
-  padding-top: 0.7rem;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-.flagged {
-  color: var(--warn);
 }
 
 .left-out {
@@ -321,9 +334,7 @@
 .ranking .controls legend {
   padding: 0 0.4rem;
   color: var(--faint);
-  font: 500 0.68rem var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
 }
 
 .ranking .controls label {
@@ -377,7 +388,30 @@
 }
 
 .list-head {
-  margin: 1.2rem 0 0.4rem;
+  margin: 0 0 1rem;
+  text-align: center;
+}
+
+/* The mission's atmosphere in one line, and the fold that edits it. */
+.profile {
+  margin: -1.5rem 0 1rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.profile span {
+  color: var(--faint);
+}
+
+.adjust {
+  margin: 0 auto 2.5rem;
+  font-size: 0.9rem;
+}
+
+.adjust > summary {
+  width: fit-content;
+  margin: 0 auto;
 }
 
 .ranked {
@@ -426,7 +460,8 @@
   display: block;
   overflow: hidden;
   color: var(--text);
-  font-weight: 600;
+  font-weight: 500;
+  text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -436,7 +471,7 @@
 }
 
 .total {
-  font: 600 1.15rem var(--font-display);
+  font: 400 1.15rem var(--font-display);
   text-align: right;
 }
 
@@ -573,7 +608,7 @@
 }
 
 .viz figcaption {
-  font: 600 1rem var(--font-display);
+  font: 400 1rem var(--font-display);
 }
 
 .viz figcaption span {
@@ -733,14 +768,14 @@
 .themes {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
   align-items: start;
   margin: 0.8rem 0;
 }
 
 .theme {
   min-width: 0;
-  padding: 1.1rem 1.2rem;
+  padding: 1.5rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -748,7 +783,7 @@
 
 .theme h3 {
   margin: 0 0 0.8rem;
-  font: 600 1.05rem var(--font-display);
+  font: 400 1.05rem var(--font-display);
 }
 
 .theme figure {

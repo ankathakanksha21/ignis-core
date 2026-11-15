@@ -60,7 +60,7 @@ function Panel({ card }: { card: ModelCard }) {
             )}
           </label>
         ))}
-        <p className="quiet">Outside the tested range the model gives no prediction.</p>
+
       </div>
 
       <div>
@@ -125,9 +125,13 @@ export function ModelsPage() {
 
   return (
     <section className="models">
-      <p className="eyebrow">Trained on NASA test tables</p>
-      <h1>Predictive models</h1>
-      <p className="lede">Each model answers only inside the conditions NASA tested, and shows the real tests nearest to what you asked.</p>
+      <header className="hero">
+        <p className="eyebrow">Models</p>
+        <h1>
+          Predict, inside <span className="dim">what NASA tested.</span>
+        </h1>
+        <p className="lede">Outside that range the model gives no answer.</p>
+      </header>
 
       <div className="model-list">
         {cards.map((card) => (

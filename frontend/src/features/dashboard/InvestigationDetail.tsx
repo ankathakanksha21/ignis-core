@@ -57,7 +57,7 @@ export function InvestigationDetail() {
   return (
     <section className={`detail pillar-${data.pillar}`}>
       <p className="back">
-        <Link to="/dashboard">← All investigations</Link>
+        <Link to="/dashboard">← All experiments</Link>
       </p>
       <p className="eyebrow">
         {PILLAR_NAMES[data.pillar]} · {data.psi_id}
@@ -90,7 +90,7 @@ export function InvestigationDetail() {
       </p>
 
       {data.ai_summary && (
-        <section className="ai-summary">
+        <section className="ai-summary reveal">
           <p>
             <span className="ai-tag">AI summary</span>
           </p>
@@ -169,7 +169,7 @@ export function InvestigationDetail() {
         const varied = table.columns.filter((column) => column.distinct > 1).sort((a, b) => a.distinct - b.distinct)
         const fixed = table.columns.filter((column) => column.distinct === 1)
         return (
-          <section key={table.file_name} className="table-block">
+          <section key={table.file_name} className="table-block reveal">
             <h2>{table.file_name}</h2>
             <p>
               {Object.entries(table.rows)

@@ -7,9 +7,7 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--link) 15%, transparent);
   color: var(--link);
-  font: 500 0.64rem var(--font-mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
   vertical-align: middle;
 }
 
@@ -30,9 +28,7 @@
 .lab .box h2 {
   margin: 0 0 0.9rem;
   color: var(--faint);
-  font: 500 0.68rem var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
 }
 
 /* Simulated output sits in a dashed frame so it never reads as a measurement. */
@@ -165,7 +161,7 @@
 
 .lab .tiles dd {
   margin: 0;
-  font: 600 1.3rem/1.25 var(--font-display);
+  font: 400 1.3rem/1.25 var(--font-display);
   letter-spacing: -0.01em;
 }
 

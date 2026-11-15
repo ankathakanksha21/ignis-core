@@ -21,14 +21,14 @@
 
 .model-list button.on,
 .model-list button.on:hover {
-  border-color: var(--link);
-  background: color-mix(in srgb, var(--nasa-blue) 45%, var(--surface));
+  border-color: var(--text);
+  background: var(--surface-2);
   color: var(--text);
   font-weight: 400;
 }
 
 .model-list strong {
-  font: 600 1rem var(--font-display);
+  font: 400 1rem var(--font-display);
 }
 
 .model-list span,
@@ -57,9 +57,7 @@
 .models h2 {
   margin: 0 0 0.8rem;
   color: var(--faint);
-  font: 500 0.68rem var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
 }
 
 .models h3 {
@@ -123,7 +121,7 @@
 
 .headline strong {
   color: var(--text);
-  font: 600 2rem/1.1 var(--font-display);
+  font: 400 2rem/1.1 var(--font-display);
   letter-spacing: -0.02em;
 }
 

@@ -44,10 +44,14 @@ export function SimilarPage() {
 
   return (
     <section className="dashboard similar">
-      <p className="eyebrow">Across every investigation</p>
-      <h1>Find similar tests</h1>
-      <DashboardNav />
-      <p className="lede">The real NASA test rows closest to your conditions. Leave a box empty to ignore it.</p>
+      <header className="hero">
+        <p className="eyebrow">Similar tests</p>
+        <h1>
+          Find the closest <span className="dim">real tests.</span>
+        </h1>
+        <p className="lede">Enter your conditions. Leave a box empty to skip it.</p>
+        <DashboardNav />
+      </header>
 
       {setup && (
         <p className="filter">

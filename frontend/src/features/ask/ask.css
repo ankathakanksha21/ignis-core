@@ -8,7 +8,7 @@
 .ask form {
   display: flex;
   gap: 0.5rem;
-  margin: 1.4rem 0 0.8rem;
+  margin: 0 0 1rem;
   padding: 0.4rem;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
@@ -37,6 +37,7 @@
 .ask .examples {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.4rem;
 }
 
@@ -73,16 +74,16 @@
   margin-right: 0.15rem;
   padding: 0 0.35em;
   border-radius: 5px;
-  background: color-mix(in srgb, var(--link) 16%, transparent);
-  color: var(--link);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
   font: 500 0.7rem/1.5 var(--font-mono);
   text-align: center;
   vertical-align: 0.15em;
 }
 
 .cite:hover {
-  background: var(--link);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
   text-decoration: none;
 }
 
@@ -108,13 +109,13 @@
 }
 
 .sources li::marker {
-  color: var(--link);
+  color: var(--accent);
   font: 500 0.75rem var(--font-mono);
 }
 
 .sources li.lit,
 .sources li:target {
-  background: color-mix(in srgb, var(--link) 12%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .sources p {

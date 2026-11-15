@@ -64,9 +64,7 @@ export function Explorer() {
 
   return (
     <>
-      <p className="lede">
-        Every point is one real FLEX test, <strong>measured by NASA</strong>. Nothing here is simulated.
-      </p>
+      <p className="lede center">Each point is one real NASA test.</p>
       <p className="pickers">
         {picker(xKey, setX, 'Across')}
         {picker(yKey, setY, 'Up')}

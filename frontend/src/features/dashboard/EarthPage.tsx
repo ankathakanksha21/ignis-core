@@ -18,22 +18,24 @@ export function EarthPage() {
 
   return (
     <section className="dashboard earth">
-      <p className="eyebrow">Earth applications</p>
-      <h1>On Earth</h1>
-      <DashboardNav />
-      <p className="lede">What the research is for on the ground, in NASA's own words. Each quote links to where NASA says it.</p>
+      <header className="hero">
+        <p className="eyebrow">On Earth</p>
+        <h1>
+          What it does <span className="dim">on Earth.</span>
+        </h1>
+        <p className="lede">In NASA's own words. Each quote links to its source.</p>
+        <DashboardNav />
+      </header>
       {error && <p role="alert">Could not load the Earth uses: {error}</p>}
       {!data && !error && <p>Loading…</p>}
 
       {data && (
         <>
-          <h2>What the investigation records say</h2>
-          <p className="quiet">
-            Quoted from the "{data.field}" text of each PSI record. The grouping into themes is this project's, not NASA's.
-          </p>
+          <h2>From NASA's records</h2>
+          <p className="quiet">Quoted from each record's "{data.field}" text. The themes are ours.</p>
           <div className="themes">
             {data.themes.map((theme) => (
-              <section key={theme.id} className="theme">
+              <section key={theme.id} className="theme reveal">
                 <h3>{theme.label}</h3>
                 {theme.quotes.map((quote) => (
                   <figure key={quote.text}>
@@ -48,19 +50,17 @@ export function EarthPage() {
           </div>
           {data.not_quoted.length > 0 && (
             <p className="quiet">
-              Nothing is quoted from <Names people={data.not_quoted} />. This project found no specific Earth use named in
-              their records. Open one to read its full text.
+              We found no specific Earth use in the records of <Names people={data.not_quoted} />.
             </p>
           )}
 
-          <h2>NASA products the challenge names</h2>
+          <h2>Products from NASA's fire-safety work</h2>
           <p className="quiet">
-            These come from NASA's wider fire-safety work. The pages below tie none of them to a combustion investigation in
-            PSI, so this tool does not link them either. Pages read on {data.spinoffs_checked}.
+            NASA does not tie these to any experiment above, so we do not either. Pages read on {data.spinoffs_checked}.
           </p>
           <div className="themes">
             {data.spinoffs.map((entry) => (
-              <section key={entry.product} className="theme">
+              <section key={entry.product} className="theme reveal">
                 <h3>{entry.product}</h3>
                 {entry.sources.map((source) => (
                   <figure key={source.url}>

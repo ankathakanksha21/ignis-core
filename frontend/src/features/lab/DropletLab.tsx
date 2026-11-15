@@ -121,10 +121,7 @@ export function DropletLab() {
 
   return (
     <>
-      <p className="lede">
-        One fuel droplet burning in microgravity. The panels are <strong>simulated</strong> from NASA's FLEX tests. The table under them
-        is <strong>measured</strong>.
-      </p>
+      <p className="lede center">Simulated from NASA's FLEX tests. Real tests are shown below.</p>
       <p className="filter">
         {PRESETS.map((preset) => (
           <button key={preset.name} className={JSON.stringify(preset.settings) === request ? 'on' : ''} onClick={() => setSettings(preset.settings)}>

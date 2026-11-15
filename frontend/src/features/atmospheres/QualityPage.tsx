@@ -28,10 +28,14 @@ export function QualityPage() {
 
   return (
     <section className="atmospheres">
-      <p className="eyebrow">Data quality</p>
-      <h1>{data.flags.length} suspect cells</h1>
-      <AtmospheresNav />
-      <p className="lede">Cells in NASA's tables that look wrong. They are flagged, never changed. The checks are this project's.</p>
+      <header className="hero">
+        <p className="eyebrow">Data quality</p>
+        <h1>
+          {data.flags.length} cells <span className="dim">look wrong.</span>
+        </h1>
+        <p className="lede">We flag them and never change NASA's data. The checks are ours.</p>
+        <AtmospheresNav />
+      </header>
 
       <h2>What was checked</h2>
       <table>
