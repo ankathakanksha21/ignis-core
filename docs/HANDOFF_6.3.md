@@ -9,7 +9,7 @@ To start a session: open it on `ankathakanksha21/ignis-core` and say "Read docs/
 - The project is "Flame in Freefall", a NASA Space Apps 2026 dashboard over NASA's microgravity combustion experiments (the PSI repository).
 - Two people build it. @ankathakanksha21 builds the dashboard (features 6.1, 6.2, 6.4, 6.5 and data ingest). You build 6.3: the predictive models and a simplified physics engine.
 - Your work is a standalone Python package, `ml/` (`ignis_ml`). It needs no backend, frontend, Node or API key.
-- The rest of the app calls three functions in `ml/src/ignis_ml/api.py`. `flex_burning_rate` is now real on branch `feat/6.3-flex-burning-rate`. The other models and `simulate()` still answer `not_implemented`, which is a valid response the dashboard already handles.
+- The rest of the app calls three functions in `ml/src/ignis_ml/api.py`. `flex_burning_rate` is real on `main`, and `simulate()` answers for the droplet scenario on branch `feat/6.3-physics-d2`. The other models and the solid scenario still answer `not_implemented`, which is a valid response the dashboard already handles.
 - The plan is one model per fuel class (droplet, gas, solid), as the problem statement says.
 - The data is already in the repository at `data/raw/`. Nothing to download.
 - Ingest has landed. `data/processed/quality_flags.csv` lists the suspicious cells, and the models leave flagged rows out of training. `data/processed/rows.csv` marks each raw row as `test`, `summary` or `other`.
@@ -51,8 +51,8 @@ One short branch per line, each merged by pull request before the next starts.
 
 | # | Branch | Fuel | What | Status |
 | --- | --- | --- | --- | --- |
-| 1 | `feat/6.3-flex-burning-rate` | droplet | Regression of droplet burning rate on FLEX (PSI-69), plus the shared pieces. | Built and pushed, pull request not opened yet. |
-| 2 | `feat/6.3-physics-d2` | droplet | `simulate()` for the droplet scenario using the d² law, calibrated on FLEX. | Next. The combustion lab (6.4) is the one dashboard feature that cannot work without 6.3. |
+| 1 | `feat/6.3-flex-burning-rate` | droplet | Regression of droplet burning rate on FLEX (PSI-69), plus the shared pieces. | Merged. |
+| 2 | `feat/6.3-physics-d2` | droplet | `simulate()` for the droplet scenario using the d² law, calibrated on FLEX. | Built, pull request not opened yet. The combustion lab (6.4) can call it once it is merged. |
 | 3 | `feat/6.3-cfig-ignition` | gas | Classification of hot ignition (yes or no) on the CFI-G Normal Flames table only (PSI-159, 179 tests, label filled in every row). | Needs a small contract pull request first (see open questions). |
 | 4 | `feat/6.3-solid-matcher` | solid | Nearest real tests for a solid-fuel query over BASS-II (PSI-25, 129 tests) and Saffire (PSI-98, -99, -100, 13 tests). A matcher, not a trained model. It reuses `nearest.py`. | Not started. |
 
@@ -125,7 +125,7 @@ The Inverse Flames table is out of scope: its labels need normalising and its co
 ## 6. Open questions for the two of you
 
 1. The gas model's id. Hot ignition is not cool flame, so it needs its own id, `cfig_hot_ignition`, added to `ModelId` in `contract.py`. That is a contract change: its own pull request, approved by @ankathakanksha21, before step 3.
-2. What `simulate()` returns above 0 g for a droplet. FLEX is microgravity only, so there is no 1 g result to use as a bound. Proposed: `ok` at 0 g, and `not_implemented` with a message saying PSI holds no droplet tests at that gravity, until a normal-gravity benchmark is sourced. Also proposed: outside the FLEX range return `invalid_input` with the tested range in the message, since `SimulateResponse` has no `withheld` status. Check both with the dashboard side before step 2 merges, along with whether `SimState` carries enough for the lab.
+2. What `simulate()` returns where FLEX has no data. As built in step 2: `ok` at 0 g only. Above 0 g it answers `not_implemented` with a message, because FLEX is microgravity only and there is no 1 g result to use as a bound. Outside the FLEX range, for an untested fuel, or with airflow above zero, it answers `invalid_input` with the tested range in the message, since `SimulateResponse` has no `withheld` status. `flame_standoff_ratio` is empty because the table has no flame size. Check with the dashboard side that the lab handles these, and whether `SimState` needs a flame-out diameter field (today it is the last point of the d² curve).
 3. Untested combinations. Settled in step 1 without a contract change (per-fuel ranges, CO2 with helium withheld, and a caution in `message` when the closest real test is further than a scaled distance of 0.15). Revisit only if the dashboard wants a refusal there instead of a caution.
 
 The dashboard side builds the Models page against `/api/models` and `/api/predict` (unchanged default).
@@ -146,9 +146,13 @@ open a pull request into main, wait for CI, squash and merge, delete the branch
 
 ## 8. Next task
 
-First open the pull request for `feat/6.3-flex-burning-rate`, wait for CI, squash and merge. Then, on a new branch from `main`:
+Step 1 is merged. Step 2 is built on `feat/6.3-physics-d2` and waits for its pull request.
 
-1. Add `ml/src/ignis_ml/physics/droplet.py`. The d² law: diameter squared falls linearly with time, slope equal to the burning-rate constant.
-2. Take the burning-rate constant from the fitted `flex_burning_rate` model for the requested conditions, so the engine and the model cannot disagree. Take the flame-out diameter from the FLEX extinction rows, per fuel.
-3. Fill `simulate()` for the droplet scenario: `SimState` with the burning-rate constant, burn time and the d² curve, `calibrated_on` pointing at the FLEX table, `nearest_tests`, and `assumptions` listing every simplification in plain words.
-4. Tests: an in-range run is `ok` and labelled `simulated`; the d² curve starts at the initial diameter squared and ends at the flame-out diameter squared; a solid scenario is `not_implemented`; every cited row exists.
+How step 2 works, in `ml/src/ignis_ml/physics/droplet.py`: the burning-rate constant is the `flex_burning_rate` model's value for the requested conditions, so the engine and the model cannot disagree. The flame-out diameter is the median over the 5 nearest real tests of the same fuel that recorded an extinction diameter, and those tests are the ones cited. Checked against FLEX, the law's burn time is a median 0.95 of the measured one across 154 tests that ended in extinction.
+
+Then step 3, on a new branch from `main`:
+
+1. Open the contract pull request that adds `cfig_hot_ignition` to `ModelId` (open question 1) and get it approved.
+2. Add `ml/src/ignis_ml/features/cfig.py` for the Normal Flames table: typed, unit-converted rows with the row key, flagged rows left out through `flags.py`.
+3. Add `ml/src/ignis_ml/models/cfig_hot_ignition.py` following `flex_burning_rate.py`: logistic regression and gradient-boosted trees, cross-validation grouped by `Day`, compared against the majority class. Register it in `_BUILT`.
+4. The four tests from "Done means".

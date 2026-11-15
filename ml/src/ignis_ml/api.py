@@ -18,6 +18,7 @@ from .contract import (
     SimulateResponse,
 )
 from .models import flex_burning_rate
+from .physics import droplet
 
 _PLANNED: dict[ModelId, dict] = {
     "flex_burning_rate": dict(
@@ -66,7 +67,9 @@ def predict(request: PredictRequest) -> PredictResponse:
 
 def simulate(request: SimulateRequest) -> SimulateResponse:
     """Run the simplified physics engine. Output is always labelled simulated."""
+    if request.scenario == "droplet":
+        return droplet.simulate(request)
     return SimulateResponse(
         status="not_implemented",
-        message="The physics engine is not built yet.",
+        message="The solid scenario is not built: PSI has too few solid tests with an outcome to calibrate it on.",
     )
