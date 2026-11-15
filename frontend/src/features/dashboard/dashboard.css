@@ -401,7 +401,7 @@
 }
 
 .profile span {
-  color: var(--faint);
+  color: var(--muted);
 }
 
 .adjust {

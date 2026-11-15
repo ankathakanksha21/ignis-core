@@ -118,18 +118,28 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Two soft glows behind the top of the page: flame orange and NASA blue. */
+/* The top of every page sits on a photo of the Moon, a little lighter and see-through.
+   Layers, top to bottom: a blue glow, a shade behind the headline so text stays readable,
+   a veil in the page colour that makes the photo see-through, then the photo.
+   The whole thing fades into the page below. */
 body::before {
-  position: fixed;
-  inset: -20% -10% auto;
+  --veil: 46%;
+  --shade: 80%;
+  position: absolute;
+  inset: 0 0 auto;
   z-index: -2;
-  height: 90vh;
+  height: min(56rem, 105vh);
   background:
-    radial-gradient(38rem 26rem at 82% 18%, rgb(255 92 3 / 20%), transparent 68%),
-    radial-gradient(42rem 28rem at 16% 12%, rgb(30 91 216 / 26%), transparent 68%);
-  animation: drift 16s ease-in-out infinite alternate;
+    radial-gradient(42rem 28rem at 12% 8%, rgb(30 91 216 / 22%), transparent 68%),
+    radial-gradient(48rem 26rem at 50% 40%, color-mix(in srgb, var(--bg) var(--shade), transparent) 25%, transparent 74%),
+    linear-gradient(color-mix(in srgb, var(--bg) var(--veil), transparent) 0 0),
+    url('./assets/moon.webp') right top / cover no-repeat;
+  animation: drift 40s ease-in-out infinite alternate;
   content: '';
+  filter: brightness(1.18);
+  mask-image: linear-gradient(#000 30%, transparent 94%);
   pointer-events: none;
+  transform-origin: 100% 0;
 }
 
 /* A faint dot grid that fades out toward the edges. */
@@ -143,10 +153,11 @@ body::after {
   pointer-events: none;
 }
 
+/* On the light page the photo is only a faint texture. */
 :root[data-theme='light'] body::before {
-  background:
-    radial-gradient(38rem 26rem at 82% 18%, rgb(255 92 3 / 13%), transparent 68%),
-    radial-gradient(42rem 28rem at 16% 12%, rgb(30 91 216 / 12%), transparent 68%);
+  --veil: 84%;
+  --shade: 60%;
+  filter: none;
 }
 
 :root[data-theme='light'] body::after {
@@ -155,7 +166,7 @@ body::after {
 
 @keyframes drift {
   to {
-    transform: translate3d(3%, 4%, 0) scale(1.08);
+    transform: scale(1.06);
   }
 }
 
@@ -457,6 +468,12 @@ main > * {
 
 .hero .lede {
   margin: 1.4rem 0 0;
+  color: var(--muted);
+}
+
+/* Over the photo the quiet half of the headline needs a little more light. */
+.hero .dim {
+  color: color-mix(in srgb, var(--text) 54%, transparent);
 }
 
 .hero .subnav {
