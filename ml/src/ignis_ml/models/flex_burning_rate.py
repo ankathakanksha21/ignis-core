@@ -113,8 +113,8 @@ class Fitted:
     model: Pipeline
     by_condition: dict[str, Scores]  # candidate name, or "mean", -> scores
     by_test_date: dict[str, Scores]
-    range_low: float  # added to a prediction to give its low end
-    range_high: float
+    ranges: dict[str, tuple[float, float]]  # fuel -> (low, high) offsets added to a prediction
+    reference: np.ndarray | None  # the average training test, as the linear model sees it
     table: TableRef
     left_out: tuple[Exclusion, ...]
 
@@ -141,6 +141,52 @@ def _cross_validate(train: pd.DataFrame, group_column: str) -> dict[str, Scores]
     return {name: _score(target, values) for name, values in predicted.items()}
 
 
+def _dense(matrix) -> np.ndarray:
+    return np.asarray(matrix.todense()) if hasattr(matrix, "todense") else np.asarray(matrix)
+
+
+_PLAIN_NAMES = {
+    "fuel": "fuel",
+    "o2_mole_fraction": "oxygen",
+    "co2_mole_fraction": "CO2",
+    "he_mole_fraction": "helium",
+    "pressure_kpa": "pressure",
+    "droplet_diameter_mm": "droplet size",
+}
+
+
+def contributions(fit: "Fitted", values: dict[str, float | str]) -> tuple[float, dict[str, float]] | None:
+    """How far each input moves the answer from the average FLEX test.
+
+    Exact for the linear model: the average test's prediction plus these
+    amounts is the prediction. None when the served model is not linear.
+    """
+    if fit.reference is None:
+        return None
+    prepare, linear = fit.model.named_steps["prepare"], fit.model.named_steps["model"]
+    row = _dense(prepare.transform(pd.DataFrame([values])[FEATURES]))[0]
+    moved: dict[str, float] = {}
+    for name, amount in zip(prepare.get_feature_names_out(), linear.coef_ * (row - fit.reference)):
+        key = "fuel" if name.startswith("fuel__") else name.split("__", 1)[1]
+        moved[key] = moved.get(key, 0.0) + float(amount)
+    return float(linear.intercept_ + linear.coef_ @ fit.reference), moved
+
+
+def _why(fit: "Fitted", values: dict[str, float | str]) -> str:
+    explained = contributions(fit, values)
+    if explained is None:
+        return ""
+    average, moved = explained
+    shown = sorted(((key, amount) for key, amount in moved.items() if abs(amount) >= 0.005), key=lambda item: -abs(item[1]))
+    if not shown:
+        return f" Why: every input is close to the average FLEX test ({average:.2f} {TARGET_UNIT})."
+    parts = ", ".join(
+        f"{'no ' if key in DILUENTS and values[key] == 0 else ''}{_PLAIN_NAMES[key]} {amount:+.2f}"
+        for key, amount in shown
+    )
+    return f" Why: starting from the average FLEX test ({average:.2f} {TARGET_UNIT}), {parts}."
+
+
 @lru_cache(maxsize=1)
 def fitted() -> Fitted:
     flex = load_flex()
@@ -158,8 +204,16 @@ def fitted() -> Fitted:
     served = min(CANDIDATES, key=lambda name: by_condition[name].mae)
     model = CANDIDATES[served]().fit(train[FEATURES], train[TARGET].to_numpy())
 
+    # Heptane scatters about twice as much as methanol between repeats, so one
+    # shared range would be too wide for one fuel and too narrow for the other.
     tail = (1 - RANGE_COVERAGE) / 2
-    range_low, range_high = np.quantile(by_condition[served].residuals, [tail, 1 - tail])
+    residuals = by_condition[served].residuals
+    ranges = {
+        fuel: tuple(float(edge) for edge in np.quantile(residuals[(train["fuel"] == fuel).to_numpy()], [tail, 1 - tail]))
+        for fuel in sorted(train["fuel"].unique())
+    }
+    linear = hasattr(model.named_steps["model"], "coef_")
+    reference = _dense(model.named_steps["prepare"].transform(train[FEATURES])).mean(axis=0) if linear else None
 
     specs = build_specs(
         train,
@@ -175,8 +229,8 @@ def fitted() -> Fitted:
         model=model,
         by_condition=by_condition,
         by_test_date=by_test_date,
-        range_low=float(range_low),
-        range_high=float(range_high),
+        ranges=ranges,
+        reference=reference,
         table=TableRef(
             psi_id=PSI_ID, file_name=flex.file_name, doi=investigation(PSI_ID)["doi"], n_rows=len(train)
         ),
@@ -199,7 +253,9 @@ def _notes(fit: Fitted) -> str:
             f"Left out: {rows_left_out}.",
             f"Answers come from {fit.served}, which had the lower error under grouped cross-validation;"
             f" {' and '.join(others)} was fitted on the same rows and is reported beside it.",
-            f"The low-high range holds {RANGE_COVERAGE:.0%} of the cross-validated errors.",
+            f"The low-high range holds {RANGE_COVERAGE:.0%} of the cross-validated errors for that fuel: "
+            + ", ".join(f"{fuel} {low:+.2f} to {high:+.2f}" for fuel, (low, high) in fit.ranges.items())
+            + f" {TARGET_UNIT}.",
             "Column headers lost their subscripts in PSI: O, N and CO are read as O2, N2 and CO2,"
             " and 'Burning rate; mm' is read as mm^2/s. Nitrogen is the balance gas and is not an input.",
             "Inputs are also checked per fuel, and CO2 with helium is withheld because FLEX never tested them together.",
@@ -288,7 +344,9 @@ def predict(request: PredictRequest) -> PredictResponse:
 
     value = estimate(fit, checked.values)
     closest = _nearest(fit, checked.values, max(request.n_nearest, 1))
+    low, high = fit.ranges[checked.values["fuel"]]
     message = f"Predicted by {fit.served} trained on {len(fit.train)} FLEX tests in microgravity."
+    message += _why(fit, checked.values)
     if closest[0].distance > FAR_DISTANCE:
         message += (
             f" Caution: the closest real test is not close to these inputs (scaled distance"
@@ -300,8 +358,8 @@ def predict(request: PredictRequest) -> PredictResponse:
         prediction=Prediction(
             value=round(value, 4),
             unit=TARGET_UNIT,
-            low=round(max(value + fit.range_low, 0.0), 4),
-            high=round(value + fit.range_high, 4),
+            low=round(max(value + low, 0.0), 4),
+            high=round(value + high, 4),
         ),
         nearest_tests=closest[: request.n_nearest],
         message=message,

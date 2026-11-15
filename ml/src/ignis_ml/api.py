@@ -17,7 +17,7 @@ from .contract import (
     SimulateRequest,
     SimulateResponse,
 )
-from .models import cfig_hot_ignition, flex_burning_rate, solid_flame_spread
+from .models import cfig_hot_ignition, flex_burning_rate, flex_extinction, solid_flame_spread
 from .physics import droplet
 
 _PLANNED: dict[ModelId, dict] = {
@@ -48,6 +48,7 @@ _PLANNED: dict[ModelId, dict] = {
 # Models that are built. Anything in ModelId but not here answers not_implemented.
 _BUILT = {
     flex_burning_rate.MODEL_ID: flex_burning_rate,
+    flex_extinction.MODEL_ID: flex_extinction,
     cfig_hot_ignition.MODEL_ID: cfig_hot_ignition,
     solid_flame_spread.MODEL_ID: solid_flame_spread,
 }
