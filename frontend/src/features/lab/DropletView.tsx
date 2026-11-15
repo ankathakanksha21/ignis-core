@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
+import { FlameCanvas } from './FlameCanvas.tsx'
 import { figure } from './types.ts'
 import type { SimState } from './types.ts'
 
-const PX_PER_MM = 26
 const W = 360
 const H = 200
 const PLOT = { left: 44, right: 348, top: 12, bottom: 166 }
@@ -18,7 +18,7 @@ function d2At(curve: { t_s: number; d2_mm2: number }[], t: number): number {
   return curve[curve.length - 1].d2_mm2
 }
 
-export function DropletView({ state }: { state: SimState }) {
+export function DropletView({ state, fuel }: { state: SimState; fuel: string }) {
   const curve = state.d2_curve ?? []
   const end = state.burn_time_s ?? 0
   const calm = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -40,27 +40,18 @@ export function DropletView({ state }: { state: SimState }) {
   if (curve.length < 2) return null
   const out = t >= end
   const diameter = Math.sqrt(d2At(curve, t))
-  const radius = (diameter * PX_PER_MM) / 2
+  // A faster burn is drawn brighter, up to full brightness at 1 mm²/s. Illustration only.
+  const intensity = Math.min(1, Math.max(0.25, state.burning_rate_mm2_s ?? 0.5))
   const sx = (time: number) => PLOT.left + (time / end) * (PLOT.right - PLOT.left)
   const sy = (d2: number) => PLOT.bottom - (d2 / curve[0].d2_mm2) * (PLOT.bottom - PLOT.top)
   const shownAt = probe ?? t
 
   return (
     <div className="droplet-view">
-      <svg viewBox="0 0 320 230" role="img" aria-label="A burning droplet in microgravity, drawn as a schematic">
-        <defs>
-          <radialGradient id="flame">
-            <stop offset="55%" stopColor="#3987e5" stopOpacity="0" />
-            <stop offset="80%" stopColor="#3987e5" stopOpacity="0.75" />
-            <stop offset="100%" stopColor="#3987e5" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        {!out && <circle cx={160} cy={110} r={radius + 38} fill="url(#flame)" />}
-        <circle className="droplet" cx={160} cy={110} r={radius} />
-        <text x={160} y={222} textAnchor="middle" className="caption">
-          {!out ? `${t.toFixed(1)} s · droplet ${figure(diameter)} mm` : diameter < 0.01 ? `The droplet burns away at ${figure(end)} s.` : `Flame out at ${figure(end)} s. Droplet left: ${figure(diameter)} mm.`}
-        </text>
-      </svg>
+      <FlameCanvas diameterMm={diameter < 0.01 ? 0 : diameter} burning={!out} intensity={intensity} fuel={fuel} />
+      <p className="caption" aria-live="off">
+        {!out ? `${t.toFixed(1)} s · droplet ${figure(diameter)} mm` : diameter < 0.01 ? `The droplet burns away at ${figure(end)} s.` : `Flame out at ${figure(end)} s. Droplet left: ${figure(diameter)} mm.`}
+      </p>
 
       <p className="transport">
         <button onClick={() => (out ? (setT(0), setPlaying(true)) : setPlaying(!playing))}>{out ? 'Replay' : playing ? 'Pause' : 'Play'}</button>
@@ -101,7 +92,8 @@ export function DropletView({ state }: { state: SimState }) {
         Diameter squared: <strong>{figure(d2At(curve, shownAt))} mm²</strong> at {shownAt.toFixed(1)} s
       </p>
       <p className="quiet">
-        A schematic. The droplet's size follows the simulation. The flame's size is not simulated, because FLEX records none.
+        A schematic. The droplet's size follows the simulation. The flame's size, colour and glow are drawn for illustration, because
+        FLEX records none of them.
       </p>
     </div>
   )

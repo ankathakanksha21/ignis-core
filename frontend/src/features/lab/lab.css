@@ -84,13 +84,22 @@
   height: auto;
 }
 
-.droplet-view .droplet {
-  fill: var(--muted);
+/* The chamber window. It stays dark in the light theme, as a flame is seen against the dark. */
+.droplet-view .flame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 360 / 250;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #04060c;
 }
 
 .droplet-view .caption {
-  fill: var(--muted);
-  font-size: 12px;
+  margin: 0.6rem 0 0.2rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 .transport {
