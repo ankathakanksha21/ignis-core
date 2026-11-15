@@ -11,7 +11,12 @@ export type Habitat = {
   assumed: string | null
 }
 
-export type Cell = { column: number; row: number; rows: number; from: Record<string, number> }
+export type Source = { psi_id: string; name: string; file_name: string; rows: number[] }
+
+export type Cell = { column: number; row: number; rows: number; from: Record<string, number>; sources: Source[] }
+
+/** A cell of one fuel class's grid, as the page points at it. */
+export type Picked = { fuel_class: string; column: number; row: number }
 
 export type Nearest = {
   psi_id: string
@@ -44,6 +49,8 @@ export type Suggestion = {
   status: 'untested' | 'pressure_unknown'
   rows_without_pressure: number
   oxygen_never_tested: boolean
+  closeness: number
+  relevance: number
 }
 
 export type GapMap = {
@@ -54,5 +61,8 @@ export type GapMap = {
   habitat_cell: { column: number; row: number }
   classes: ClassMap[]
   suggestions: Suggestion[]
+  candidates: number
+  tolerance: { oxygen_points: number; pressure_kpa: number }
+  fuel_relevance: Record<string, number>
   unmapped: string[]
 }

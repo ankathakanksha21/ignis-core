@@ -1,8 +1,9 @@
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useTitle } from '../../useTitle.ts'
 import { useApi } from '../../api/useApi.ts'
 import { CONDITIONS, NOT_STATED, PILLAR_NAMES, gravity, range, testStat } from './format.ts'
-import type { Detail, Table } from './types.ts'
+import type { Detail, RawRows, Table } from './types.ts'
 
 const HEADLINE = CONDITIONS.filter((c) => ['o2_mole_fraction', 'pressure_kpa'].includes(c.field))
 
@@ -47,8 +48,68 @@ function Text({ title, text }: { title: string; text: string | null }) {
   )
 }
 
+/** The table rows a link named (from the gap map, the similar-tests list and so on), cell for cell. */
+function LinkedRows({ psiId }: { psiId: string }) {
+  const [params] = useSearchParams()
+  const rows = params.get('rows')
+  const file = params.get('file')
+  const query = new URLSearchParams({ rows: rows ?? '', ...(file ? { file } : {}) })
+  const { data, error } = useApi<RawRows>(`/investigations/${psiId}/rows?${query}`)
+  const block = useRef<HTMLElement>(null)
+  const ready = Boolean(data)
+  useEffect(() => {
+    if (ready) block.current?.scrollIntoView({ block: 'start' })
+  }, [ready])
+
+  if (error) return <p role="alert">Could not open those rows: {error}</p>
+  if (!data) return <p className="loading">Loading the linked rows…</p>
+  const numbers = data.rows.map((line) => line.row)
+  return (
+    <section className="linked-rows" ref={block}>
+      <h2>{numbers.length === 1 ? `Row ${numbers[0]}` : `${numbers.length} rows`} you followed a link to</h2>
+      <p className="quiet">
+        From <code>{data.file_name}</code>, exactly as NASA published {numbers.length === 1 ? 'it' : 'them'}. Row 1 is the header, so
+        the first test is row 2.
+        {data.asked > numbers.length + data.missing.length && ` The link named ${data.asked} rows. The first ${numbers.length} are shown.`}
+        {data.missing.length > 0 && ` Not in the table: row ${data.missing.join(', ')}.`}
+        {data.rows.some((line) => line.flagged.length > 0) && ' Underlined cells are flagged by our checks.'}{' '}
+        {data.doi && (
+          <a href={`https://doi.org/${data.doi}`} target="_blank" rel="noreferrer">
+            NASA's record
+          </a>
+        )}
+      </p>
+      <div className="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Row</th>
+              {data.columns.map((name, index) => (
+                <th key={index}>{name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.rows.map((line) => (
+              <tr key={line.row}>
+                <td>{line.row}</td>
+                {line.cells.map((cell, index) => (
+                  <td key={index} className={line.flagged.includes(index) ? 'flagged' : cell.trim() ? '' : 'missing'}>
+                    {cell.trim() || NOT_STATED}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}
+
 export function InvestigationDetail() {
   const { psiId = '' } = useParams()
+  const [params] = useSearchParams()
   const { data, error } = useApi<Detail>(`/investigations/${psiId}`)
   useTitle(data?.name)
 
@@ -73,6 +134,7 @@ export function InvestigationDetail() {
       </p>
       <h1>{data.name}</h1>
       {data.title !== data.name && <p className="lede">{data.title}</p>}
+      {params.get('rows') && <LinkedRows psiId={psiId} />}
       <p className="tags">
         <span>{data.fuel_class ?? 'no fuel class'}</span>
         <span>{gravity(data)}</span>

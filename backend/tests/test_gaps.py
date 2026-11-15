@@ -56,3 +56,27 @@ def test_the_spacesuit_sits_beyond_every_test():
     assert all(cell["column"] < body["habitat_cell"]["column"] for k in body["classes"] for cell in k["cells"])
     assert client.get("/api/atmospheres/gaps?habitat=venus").status_code == 404
     assert len(client.get("/api/atmospheres/habitats").json()) == 7
+
+
+def test_cells_say_which_rows_they_count_and_suggestions_show_their_working():
+    body = gaps()
+    home = (body["habitat_cell"]["column"], body["habitat_cell"]["row"])
+    source = cells(body, "droplet")[home]["sources"][0]
+    assert (source["psi_id"], source["name"]) == ("PSI-69", "FLEX") and len(source["rows"]) == 17
+    for suggestion in body["suggestions"]:
+        assert abs(suggestion["score"] - suggestion["closeness"] * suggestion["relevance"]) < 0.002
+    assert body["candidates"] >= len(body["suggestions"]) and body["tolerance"] == {"oxygen_points": 10.0, "pressure_kpa": 35.0}
+
+
+def test_a_link_can_open_the_rows_a_cell_counts():
+    body = gaps()
+    home = (body["habitat_cell"]["column"], body["habitat_cell"]["row"])
+    source = cells(body, "droplet")[home]["sources"][0]
+    rows = ",".join(str(number) for number in source["rows"][:3])
+    found = client.get(f"/api/investigations/PSI-69/rows?rows={rows}&file={source['file_name']}").json()
+    assert [line["row"] for line in found["rows"]] == source["rows"][:3] and not found["missing"]
+    oxygen = found["columns"].index("O initial ambient composition; mole fraction")
+    assert all(0.30 <= float(line["cells"][oxygen]) < 0.35 for line in found["rows"])  # cells are NASA's own text
+    assert client.get("/api/investigations/PSI-69/rows?rows=abc").status_code == 422
+    assert client.get("/api/investigations/PSI-69/rows?rows=2&file=nope.csv").status_code == 404
+    assert client.get("/api/investigations/PSI-60/rows?rows=2").status_code == 404  # a study with no table

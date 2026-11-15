@@ -70,3 +70,15 @@ def test_bad_requests_are_refused():
     assert client.post("/api/investigations/rank", json={"mission": "venus"}).status_code == 404
     assert client.post("/api/investigations/rank", json={"mission": "moon", "weights": {"oxygen": 9}}).status_code == 422
     assert client.get("/api/investigations/missions").json()["missions"][2]["id"] == "moon"
+
+
+def test_flow_is_scored_only_when_a_flow_is_given():
+    assert all(len(result["factors"]) == 5 for result in rank().values())
+    with_flow = rank(flow_cm_s=20)
+    saffire = factor(with_flow["PSI-98"], "flow")  # SAFFIRE-I ran at 20 cm/s
+    assert saffire["score"] == 1.0 and saffire["source"]["row"] >= 2
+    flex = factor(with_flow["PSI-69"], "flow")  # FLEX records no flow
+    assert flex["unknown"] and flex["score"] == 0
+    assert with_flow["PSI-69"]["score"] < rank()["PSI-69"]["score"]
+    response = client.post("/api/investigations/rank", json={"mission": "moon", "flow_cm_s": 20})
+    assert "flow_cm_s" in response.json()["edited"]

@@ -47,15 +47,22 @@ def _counts() -> dict[str, dict[tuple[int, int], dict]]:
         if not entry["in_scope"] or entry["fuel_class"] not in grid:
             continue
         seen: dict[tuple[int, int], set] = {}
+        by_file: dict[tuple[int, int], dict[str, set]] = {}
         found = conditions.points(psi_id)
         for point in found["points"] + found["oxygen_only"]:
             pressure = point.get("pressure_kpa")
             cell = (_bin(point["o2"] * 100, OXYGEN_EDGES), NOT_STATED if pressure is None else _bin(pressure, PRESSURE_EDGES))
             seen.setdefault(cell, set()).update(point["rows"])
+            by_file.setdefault(cell, {}).setdefault(point["file_name"], set()).update(point["rows"])
         for cell, rows in seen.items():
-            into = grid[entry["fuel_class"]].setdefault(cell, {"rows": 0, "from": {}})
+            into = grid[entry["fuel_class"]].setdefault(cell, {"rows": 0, "from": {}, "sources": []})
             into["rows"] += len(rows)
             into["from"][entry["name"]] = len(rows)
+            # Which table rows these are, so the page can link straight to the tests.
+            into["sources"] += [
+                {"psi_id": psi_id, "name": entry["name"], "file_name": file_name, "rows": sorted(numbers)}
+                for file_name, numbers in sorted(by_file[cell].items())
+            ]
     return grid
 
 
@@ -104,6 +111,8 @@ def gap_map(habitat_id: str) -> dict:
                     "fuel_class": fuel_class, "column": column, "row": row,
                     "oxygen": _label(column, OXYGEN_EDGES, "%"), "pressure": _label(row, PRESSURE_EDGES, " kPa"),
                     "score": round(relevance * max(0.0, 1 - gap), 3), "fuel_why": why, "in_bounds": in_bounds,
+                    # The two numbers the score is the product of, so the page can show the working.
+                    "closeness": round(max(0.0, 1 - gap), 3), "relevance": relevance,
                     # Rows at this oxygen that state no pressure might belong here; nobody can tell.
                     "status": "pressure_unknown" if unplaced else "untested",
                     "rows_without_pressure": unplaced,
@@ -130,6 +139,9 @@ def gap_map(habitat_id: str) -> dict:
         "habitat_cell": home,
         "classes": by_class,
         "suggestions": suggestions[:8],
+        "candidates": len(suggestions),
+        "fuel_relevance": {fuel_class: FUEL_RELEVANCE[fuel_class][0] for fuel_class in MAPPED},
+        "tolerance": {"oxygen_points": TOLERANCE["o2_mole_fraction"] * 100, "pressure_kpa": TOLERANCE["pressure_kpa"]},
         "unmapped": sorted({e["fuel_class"] for e in store.investigations().values()
                             if e["in_scope"] and e["fuel_class"] and e["fuel_class"] not in MAPPED}),
     }  # fmt: skip
