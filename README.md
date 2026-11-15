@@ -45,6 +45,8 @@ cd frontend && npm run lint && npm run build
 
 After changing `backend/app/ingest/`, run `cd backend && python -m app.ingest` and commit the rebuilt files with the code.
 
+The AI summaries are written once by `cd backend && python -m app.summaries`, which needs the key. A summary is hidden if the data it was written from changes, until you run that again.
+
 ## API key
 
 Copy `.env.example` to `.env` and add the key. `.env` is git-ignored. Never commit the key.

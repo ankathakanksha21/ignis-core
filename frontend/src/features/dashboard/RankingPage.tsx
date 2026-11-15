@@ -189,6 +189,11 @@ export function RankingPage() {
             </div>
             <Meter score={result.score} />
             <span className="total">{points(result.score)}</span>
+            {result.one_line && (
+              <p className="one-line">
+                <span className="ai-tag">AI summary</span> {result.one_line}
+              </p>
+            )}
             <div className="factors">
               {result.factors.map((factor) => (
                 <FactorCell key={factor.id} factor={factor} />

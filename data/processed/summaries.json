@@ -1,0 +1,386 @@
+{
+  "model": "qwen.qwen3-vl-235b-a22b-instruct",
+  "prompt_version": 3,
+  "written_on": "2026-11-15",
+  "summaries": {
+    "PSI-69": {
+      "one_line": "FLEX burned heptane and methanol droplets in microgravity to map flammability limits and test fire suppressants like CO2 and SF6 for space safety.",
+      "summary": "FLEX tested burning droplets of heptane and methanol under varied oxygen levels and pressures in microgravity. It measured extinction behavior and suppressant effects to refine fire safety models. Results help predict fire risks in space where normal suppression may fail.",
+      "measurements": [],
+      "source_hash": "d26a08d2c24eb1f8"
+    },
+    "PSI-25": {
+      "one_line": "BASS-II burned solid fuels in microgravity to measure flame spread and extinction under varied airflow and oxygen, aiding fire safety models.",
+      "summary": "Solid fuels like rods and films burned in a space station wind tunnel with controlled airflow and oxygen. Flame behavior was recorded to compare microgravity to Earth conditions. Results help improve spacecraft fire safety and refine combustion models for future missions.",
+      "measurements": [],
+      "source_hash": "03a690c3ed442036"
+    },
+    "PSI-60": {
+      "one_line": "It analyzed SPICE flame images to understand soot formation differences in 1g and 0g, aiding fire safety models.",
+      "summary": "The study processed over 1600 DSLR images to extract soot temperatures and volume fractions from SPICE data. It compared microgravity and normal gravity flames using modeling and diagnostics. Results help improve fire safety models for spacecraft and Earth systems.",
+      "measurements": [],
+      "source_hash": "c615655cd8d06be8"
+    },
+    "PSI-102": {
+      "one_line": "Measured smoke particle sizes from overheated spacecraft materials in microgravity to improve fire detector design for space missions.",
+      "summary": "Smoke from overheated materials like Kapton and Teflon was sampled in microgravity using thermophoretic probes and video. Particle size, aging time, and flow were varied to study growth and detector response. Results help evaluate and improve smoke detectors for spacecraft and extreme Earth environments.",
+      "measurements": [
+        {
+          "name": "Thermophoretic soot samplers",
+          "quote": "initiated the thermophoretic soot samplers to sample the smoke"
+        },
+        {
+          "name": "Video cameras",
+          "quote": "activated the video cameras"
+        },
+        {
+          "name": "Transmission Electron Microscope",
+          "quote": "analyzed using a Transmission Electron microscope"
+        },
+        {
+          "name": "Smoke detectors",
+          "quote": "ran the self diagnostic procedures on the two smoke detectors"
+        },
+        {
+          "name": "Mass loss",
+          "quote": "The remains of the samples were weighed to determine their mass loss"
+        },
+        {
+          "name": "Flow field",
+          "quote": "variables such as the sample temperature, flow field, and particle aging time"
+        }
+      ],
+      "source_hash": "4a50ea6ffd4738da"
+    },
+    "PSI-10": {
+      "one_line": "It burned ethylene and propane in microgravity to map soot and extinction limits under varied oxygen, pressure, and dilution for fire safety design.",
+      "summary": "The investigation tested spherical diffusion flames of ethylene and propane in microgravity under varied oxygen, pressure, and dilution. It measured flame behavior, soot, and extinction to understand limits. Results help design safer, cleaner terrestrial combustors by revealing how flames respond in low gravity.",
+      "measurements": [
+        {
+          "name": "cameras",
+          "quote": "Observe the flames with a broad suite of cameras"
+        }
+      ],
+      "source_hash": "823997bce03d7b57"
+    },
+    "PSI-20": {
+      "one_line": "BRE burned ethylene and methane gases in microgravity to map flammability limits for spacecraft fire safety under varied oxygen levels.",
+      "summary": "The BRE investigation burned gaseous fuels on porous burners in microgravity to observe steady and extinction conditions. It varied burner size and oxygen concentration to build flammability maps. Results suggest real materials may sustain flames without airflow in high-oxygen spacecraft atmospheres, informing fire safety protocols.",
+      "measurements": [],
+      "source_hash": "a2535aa31c843f51"
+    },
+    "PSI-21": {
+      "one_line": "Burned methane and ethylene diffusion flames in microgravity to test computer models of soot and extinction under varied fuel dilution and flow.",
+      "summary": "Methane and ethylene diffusion flames were studied in microgravity with varied fuel dilution and flow. Measurements included flame shape, soot, temperatures, and chemiluminescence. Results help improve models for soot formation and flame extinction in practical devices.",
+      "measurements": [
+        {
+          "name": "flame shape",
+          "quote": "measurement of flame shape"
+        },
+        {
+          "name": "soot volume fractions",
+          "quote": "soot volume fractions"
+        },
+        {
+          "name": "OH* and CH* chemiluminescence",
+          "quote": "flame chemiluminesence of OH* and CH*"
+        }
+      ],
+      "source_hash": "6a2364241fa15214"
+    },
+    "PSI-22": {
+      "one_line": "This investigation burned methane and ethylene flames in microgravity under electric fields to study ion-driven convection and soot formation.",
+      "summary": "Gas flames were tested in microgravity with electric fields to observe how ion-driven convection affects flame shape and soot. Fuel concentration and field polarity were varied to measure flame response and chemi-ion current. Findings may help reduce pollutants in terrestrial combustion systems.",
+      "measurements": [
+        {
+          "name": "flame shape",
+          "quote": "High-resolution cameras captured flame shape"
+        },
+        {
+          "name": "chemiluminescent emissions",
+          "quote": "Spectral imaging with filters measures chemiluminescent emissions"
+        },
+        {
+          "name": "radiant emissions",
+          "quote": "There were thermopile detectors to measure flame radiant emissions"
+        }
+      ],
+      "source_hash": "a372e70418c2a14f"
+    },
+    "PSI-23": {
+      "one_line": "ACME s-Flame burned gaseous fuels in microgravity to measure flame structure and extinction, aiding models for engine safety and efficiency.",
+      "summary": "The investigation burned hydrogen, methane, and ethylene mixtures in a spherical burner under microgravity to study flame structure and extinction. It varied fuel ratios and measured flame behavior against simulations. Results help improve models for combustion devices and fire safety in low-gravity environments.",
+      "measurements": [
+        {
+          "name": "spectrally resolved images",
+          "quote": "Synchronized measurements are to be made including spectrally resolved images"
+        },
+        {
+          "name": "flame temperatures",
+          "quote": "flame and burner temperatures"
+        },
+        {
+          "name": "radiative flux",
+          "quote": "radiative flux measurements"
+        },
+        {
+          "name": "reactant flow rates",
+          "quote": "system operating conditions (including reactant flow rates"
+        },
+        {
+          "name": "ambient pressure",
+          "quote": "pressures and acceleration levels"
+        },
+        {
+          "name": "ambient temperature",
+          "quote": "ambient temperatures, pressures and acceleration levels"
+        }
+      ],
+      "source_hash": "33f7130bdb59b507"
+    },
+    "PSI-26": {
+      "one_line": "BASS tested how solid fuels burn and extinguish in microgravity to improve fire safety models for spacecraft.",
+      "summary": "BASS burned solid samples like fabric and spheres in microgravity aboard ISS, varying airflow and geometry. It measured flame behavior and suppression with inert gas. Results help refine fire models and material selection for crewed missions.",
+      "measurements": [],
+      "source_hash": "8f47586c49c36fe8"
+    },
+    "PSI-39": {
+      "one_line": "Burned n-dodecane droplets in microgravity to study cool flames and extinction under varied pressure and helium dilution for engine and spacecraft safety.",
+      "summary": "Droplets of n-dodecane and its mixtures were burned in microgravity using suspended fuel and controlled gas mixtures. Pressure, helium dilution, and fuel blends were varied to observe flame extinction and dynamics. Results help refine spacecraft fire safety and improve engine fuel models on Earth.",
+      "measurements": [
+        {
+          "name": "black-and-white camera",
+          "quote": "for droplet size measurements"
+        },
+        {
+          "name": "UV camera",
+          "quote": "for capturing the OH* radical emissions"
+        },
+        {
+          "name": "high resolution cameras",
+          "quote": "for monitoring and documentation"
+        },
+        {
+          "name": "narrow-band radiometers",
+          "quote": "for analyzed flame radiation"
+        },
+        {
+          "name": "wide-band radiometers",
+          "quote": "for analyzed flame radiation"
+        }
+      ],
+      "source_hash": "0aba1abea08e1401"
+    },
+    "PSI-47": {
+      "one_line": "Tested a modified particle counter in microgravity using dust aerosols to ensure reliable smoke detection for space missions.",
+      "summary": "The DAFT/DAFT-2 tests used Arizona Red Dust aerosolized with GN2 to evaluate a modified TSI P-Trak in microgravity. It compared performance against a DustTrak and assessed particle counting accuracy. Results help improve fire detection systems for spacecraft by validating instrument reliability in space.",
+      "measurements": [],
+      "source_hash": "c4a09837e0f714a1"
+    },
+    "PSI-62": {
+      "one_line": "This study modeled flame spread in microgravity using FGM techniques, validated against BASS experiments to improve spacecraft fire safety predictions.",
+      "summary": "The research tested flame spread on PMMA and wax samples in microgravity using computational models and experimental imagery. It measured flame geometry, temperature, soot, and spread rate to validate the UFGM method. Results aim to improve flammability prediction for spacecraft materials and fire hazard models.",
+      "measurements": [],
+      "source_hash": "50d4c3f0caf06697"
+    },
+    "PSI-68": {
+      "one_line": "FLEX-2 burned fuel droplets in microgravity to study extinction, soot, and mixing effects for better combustion models.",
+      "summary": "FLEX-2 tested pure and mixed fuel droplets in microgravity under varied pressure and oxygen levels. It measured flame behavior, extinction, and soot using cameras and sensors. Results help validate models for cleaner, more efficient engine designs.",
+      "measurements": [
+        {
+          "name": "color camera",
+          "quote": "near real-time download of the color camera video"
+        },
+        {
+          "name": "pressure data",
+          "quote": "Pressure and temperature data of the chamber environment"
+        },
+        {
+          "name": "temperature data",
+          "quote": "Pressure and temperature data of the chamber environment"
+        }
+      ],
+      "source_hash": "704360b59d13bd3e"
+    },
+    "PSI-98": {
+      "one_line": "SAFFIRE-I burned Sibal fabric in microgravity to measure flame growth and flammability limits for spacecraft fire safety.",
+      "summary": "SAFFIRE-I tested a large Sibal fabric sample in a flow duct aboard an uncrewed Cygnus vehicle. It measured flame spread, gas levels, and temperatures under low gravity. Results help validate material safety criteria and reveal how microgravity affects fire behavior in sealed spacecraft.",
+      "measurements": [
+        {
+          "name": "Cameras",
+          "quote": "flame images were captured using two cameras"
+        },
+        {
+          "name": "Thermocouples",
+          "quote": "thermocouples provided flow, flame, and plume temperatures"
+        },
+        {
+          "name": "Radiometers",
+          "quote": "two radiometers recorded flame radiation"
+        },
+        {
+          "name": "Anemometers",
+          "quote": "two anemometer tracked flow velocity"
+        },
+        {
+          "name": "Pressure sensors",
+          "quote": "solid state sensors were used to measure pressure"
+        }
+      ],
+      "source_hash": "cb6d4d9bd86af17f"
+    },
+    "PSI-99": {
+      "one_line": "SAFFIRE-II burned solid materials in space to measure fire growth and flammability limits under low gravity for spacecraft safety.",
+      "summary": "SAFFIRE-II tested nine solid samples in a flow duct aboard an uncrewed Cygnus vehicle after ISS departure. It varied material, flow direction, and oxygen to measure flame spread and gas concentrations. Results help validate material selection and reveal how microgravity affects fire behavior in sealed environments.",
+      "measurements": [
+        {
+          "name": "Cameras",
+          "quote": "flame images were captured using two cameras"
+        },
+        {
+          "name": "Thermocouples",
+          "quote": "thermocouples provided flow, flame, and plume temperatures"
+        },
+        {
+          "name": "Radiometers",
+          "quote": "two radiometers recorded flame radiation"
+        },
+        {
+          "name": "Solid state sensors",
+          "quote": "solid state sensors were used to measure pressure, CO2 and O2 mole faction"
+        },
+        {
+          "name": "Anemometers",
+          "quote": "two anemometer tracked flow velocity"
+        }
+      ],
+      "source_hash": "9d27aebc9def4ebb"
+    },
+    "PSI-100": {
+      "one_line": "SAFFIRE-III burned SIBAL fabric in low gravity at 30 cm/s flow to measure fire growth and flammability limits for spacecraft safety.",
+      "summary": "SIBAL fabric burned in Cygnus after ISS departure, with flow at 30 cm/s either concurrent or opposed. Cameras, thermocouples, radiometers, and gas sensors recorded flame, heat, and gas data. Results help validate material criteria and reveal how microgravity affects fire behavior for future missions.",
+      "measurements": [
+        {
+          "name": "Cameras",
+          "quote": "flame images were captured using two cameras"
+        },
+        {
+          "name": "Thermocouples",
+          "quote": "thermocouples provided flow, flame, and plume temperatures"
+        },
+        {
+          "name": "Radiometers",
+          "quote": "two radiometers recorded flame radiation"
+        },
+        {
+          "name": "Solid state sensors",
+          "quote": "solid state sensors were used to measure pressure, CO2 and O2 mole faction"
+        },
+        {
+          "name": "Anemometers",
+          "quote": "two anemometer tracked flow velocity"
+        }
+      ],
+      "source_hash": "8a8efc851b12b47e"
+    },
+    "PSI-101": {
+      "one_line": "SAME-R measured smoke particle sizes in microgravity using Pyrell foam and other materials to understand how fire smoke behaves differently in space.",
+      "summary": "SAME-R tested smoke from materials like Pyrell foam in microgravity using modified hardware and new diagnostics. It varied sample types, flow, and aging times to measure particle size distribution. Results help evaluate smoke detector performance in space and extreme Earth environments.",
+      "measurements": [
+        {
+          "name": "M-pass instrument",
+          "quote": "a new instrument, M-pass, developed in-house GRC"
+        },
+        {
+          "name": "DustTrak",
+          "quote": "includes a DustTrak and an ionization detector"
+        },
+        {
+          "name": "ionization detector",
+          "quote": "includes a DustTrak and an ionization detector"
+        },
+        {
+          "name": "TEM grids",
+          "quote": "all the TEM grids were severely contaminated"
+        },
+        {
+          "name": "droplet size distribution",
+          "quote": "relate the droplet size distribution to the smoke generation"
+        }
+      ],
+      "source_hash": "d4910a209667aff3"
+    },
+    "PSI-106": {
+      "one_line": "SLICE burned gaseous fuels in microgravity to study flame structure and stability for better fire safety models.",
+      "summary": "The SLICE experiment burned gaseous fuels under controlled coflow air in microgravity. It varied fuel type and measured flame behavior, soot, and stability. Results help improve fire safety by refining models of how flames behave without gravity.",
+      "measurements": [
+        {
+          "name": "high resolution camera",
+          "quote": "A high resolution camera captured still images"
+        },
+        {
+          "name": "flow rate sensors",
+          "quote": "integrated sensors to measure flow rates"
+        }
+      ],
+      "source_hash": "e6c70efd7bcd0555"
+    },
+    "PSI-107": {
+      "one_line": "SPICE burned gas fuels in microgravity to study smoke points and soot formation for safer spacecraft fire safety.",
+      "summary": "SPICE tested gas fuels like ethylene and propane in microgravity using varied burner sizes and air flows. It measured flame length and soot onset to understand smoke-point behavior. Results help improve spacecraft fire safety and combustion models.",
+      "measurements": [
+        {
+          "name": "cameras",
+          "quote": "Data such as flame lengths were recorded using still and video cameras."
+        },
+        {
+          "name": "flame height",
+          "quote": "Measurements included flame height, radiative heat losses, and co-flow air velocity distributions."
+        },
+        {
+          "name": "radiative heat losses",
+          "quote": "Measurements included flame height, radiative heat losses, and co-flow air velocity distributions."
+        },
+        {
+          "name": "co-flow air velocity",
+          "quote": "Measurements included flame height, radiative heat losses, and co-flow air velocity distributions."
+        },
+        {
+          "name": "fuel flow rate",
+          "quote": "Fuel flow rates were adjusted to identify the smoke point, marked by the flame's transition to emitting soot."
+        }
+      ],
+      "source_hash": "d47074b92752e0d4"
+    },
+    "PSI-115": {
+      "one_line": "Simulated smoke particle growth from heated dibutyl-phthalate in microgravity and Earth gravity to understand how gravity affects smoke formation.",
+      "summary": "The study simulated smoke particle formation from heated DBP under Earth and microgravity conditions using direct numerical methods. It varied flow speeds and examined particle size distributions influenced by thermophoresis and settling. Results help improve smoke detection by revealing how gravity alters smoke behavior.",
+      "measurements": [],
+      "source_hash": "5bbb7cd7a377246c"
+    },
+    "PSI-117": {
+      "one_line": "This study modeled how heat and airflow affect cool flames in microgravity to explain why they behave unpredictably in space.",
+      "summary": "The investigation used computer models to simulate how external heat and airflow affect cool flames around fuel droplets in microgravity. It varied forcing modes, droplet sizes, and ambient conditions to map stability and extinction behavior. The results help improve spacecraft fire-safety models by clarifying how cool flames respond to disturbances.",
+      "measurements": [],
+      "source_hash": "0806e9715c1619f9"
+    },
+    "PSI-142": {
+      "one_line": "This study measured cool flame transitions in counterflow setups to map flammability limits under radiation and stretch, aiding fire safety models.",
+      "summary": "The investigation tested cool flame behavior using counterflow flames and simulations, varying oxygen and pressure. It measured extinction limits and species distribution to validate models. Results help understand flame transitions relevant to high-pressure engines and microgravity fire risks.",
+      "measurements": [],
+      "source_hash": "93d80e0c869b578e"
+    },
+    "PSI-159": {
+      "one_line": "Burned propane, butane, and ethane gases in microgravity to study cool flames and their behavior under varied oxygen and pressure for engine efficiency.",
+      "summary": "Tests burned gaseous fuels on spherical burners aboard the ISS under varied oxygen levels and pressures. Researchers observed flame types and transitions using cameras and sensors. Results aim to improve cool flame models for more efficient engines, not to declare safety.",
+      "measurements": [
+        {
+          "name": "cameras",
+          "quote": "Observe the flames with a broad suite of cameras"
+        }
+      ],
+      "source_hash": "9923eb464e32f56c"
+    }
+  },
+  "failed": {}
+}

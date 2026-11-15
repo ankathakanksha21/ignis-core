@@ -5,7 +5,7 @@ from collections import Counter
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from .. import catalog, ranking, store
+from .. import catalog, ranking, store, summaries
 
 router = APIRouter(prefix="/investigations", tags=["investigations"])
 
@@ -49,6 +49,7 @@ def _card(entry: dict) -> dict:
         "conditions": entry["condition_ranges"],
         "flag_count": sum(1 for flag in store.flags() if flag["psi_id"] == psi_id),
         "brief_note": catalog.BRIEF_NOTES.get(psi_id),
+        "ai_summary": summaries.get(psi_id),
     }
 
 
@@ -57,6 +58,7 @@ def list_investigations() -> dict:
     entries = store.investigations().values()
     return {
         "pillars": [{"id": key, "description": text} for key, text in catalog.PILLARS.items()],
+        "ai_model": summaries.model_name(),
         "investigations": [_card(entry) for entry in entries if entry["in_scope"]],
         "left_out": [
             {"psi_id": e["psi_id"], "title": e["title"], "reason": e["out_of_scope_reason"]}
@@ -104,7 +106,10 @@ def rank_investigations(request: RankRequest) -> dict:
         "profile": profile,
         "edited": sorted(edits),
         "weights": weights,
-        "results": ranking.rank(profile, weights),
+        "results": [
+            {**result, "one_line": (summaries.get(result["psi_id"]) or {}).get("one_line")}
+            for result in ranking.rank(profile, weights)
+        ],
     }
 
 
@@ -194,4 +199,5 @@ def get_investigation(psi_id: str) -> dict:
         "publications": entry["publications"],
         "tables": tables,
         "flags": [flag for flag in store.flags() if flag["psi_id"] == psi_id],
+        "ai_model": summaries.model_name(),
     }

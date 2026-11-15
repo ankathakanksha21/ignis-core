@@ -31,6 +31,7 @@ Things that trip a reader:
 | `conditions.csv` | condition value | value in contract units, how it was written, and the column, row and cell text it came from |
 | `quality_flags.csv` | suspicious cell | the check that fired and why |
 | `investigations.json` | investigation | record text, DOI, publications, column mapping, ranges |
+| `summaries.json` | investigation | AI summary and the instruments named in the record, written by `python -m app.summaries` |
 
 How to read them:
 

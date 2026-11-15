@@ -69,6 +69,31 @@ export function InvestigationDetail() {
       </p>
       {data.brief_note && <p>From the challenge brief: {data.brief_note}</p>}
 
+      {data.ai_summary && (
+        <section className="ai-summary">
+          <h2>
+            <span className="ai-tag">AI summary</span>
+          </h2>
+          <p>{data.ai_summary.summary}</p>
+          {data.ai_summary.measurements.length > 0 && (
+            <>
+              <h3>Instruments and measurements named in the record</h3>
+              <ul>
+                {data.ai_summary.measurements.map((item) => (
+                  <li key={item.quote}>
+                    {item.name} <q>{item.quote}</q>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          <p className="quiet">
+            Written by {data.ai_model} from the NASA record and test table of {data.psi_id} only. Code checked that every number
+            and every quote is in that material. It can still be wrong, so check it against the record below.
+          </p>
+        </section>
+      )}
+
       <dl className="facts">
         <dt>Platform</dt>
         <dd>{data.platform ?? NOT_STATED}</dd>

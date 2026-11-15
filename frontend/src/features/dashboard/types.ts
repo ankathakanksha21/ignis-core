@@ -23,10 +23,15 @@ export type Card = {
   conditions: Record<string, Range>
   flag_count: number
   brief_note: string | null
+  ai_summary: AiSummary | null
 }
+
+// Written by the language model and checked by code (backend/app/summaries.py).
+export type AiSummary = { one_line: string; summary: string; measurements: { name: string; quote: string }[] }
 
 export type Listing = {
   pillars: { id: string; description: string }[]
+  ai_model: string | null
   investigations: Card[]
   left_out: { psi_id: string; title: string; reason: string }[]
 }
@@ -64,6 +69,7 @@ export type Detail = Card & {
   publications: { title: string | null; authors: string | null; doi: string | null }[]
   tables: Table[]
   flags: Flag[]
+  ai_model: string | null
 }
 
 // Shapes returned by /api/investigations/missions and /rank (backend/app/ranking.py).
@@ -103,6 +109,7 @@ export type Ranked = {
   fuel_class: string | null
   score: number
   factors: Factor[]
+  one_line: string | null
 }
 
 export type Ranking = { edited: string[]; results: Ranked[] }
