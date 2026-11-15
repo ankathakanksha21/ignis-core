@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useTitle } from '../../useTitle.ts'
 import { useApi } from '../../api/useApi.ts'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 import { CONDITIONS, NOT_STATED, PILLAR_NAMES, gravity, range, testStat } from './format.ts'
 import type { Detail, RawRows, Table } from './types.ts'
 
@@ -134,6 +135,9 @@ export function InvestigationDetail() {
       </p>
       <h1>{data.name}</h1>
       {data.title !== data.name && <p className="lede">{data.title}</p>}
+      <p className="voice-line left">
+        <VoiceGuide kind="investigation" params={{ psi_id: psiId }} label="Explain this experiment" />
+      </p>
       {params.get('rows') && <LinkedRows psiId={psiId} />}
       <p className="tags">
         <span>{data.fuel_class ?? 'no fuel class'}</span>

@@ -5,6 +5,7 @@ import { testLink } from '../../testLink.ts'
 import { useStored } from '../../useStored.ts'
 import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 import { DashboardNav } from './DashboardNav.tsx'
 import { NOT_STATED, range } from './format.ts'
 import type { Missions, Similar } from './types.ts'
@@ -114,6 +115,11 @@ export function SimilarPage() {
       {found?.nothing_close && (
         <p className="note">
           No real test is close to these conditions. The nearest rows are below, so you can see how far away they are.
+        </p>
+      )}
+      {found && (
+        <p className="voice-line">
+          <VoiceGuide kind="similar" params={{ ...found.query, fuel_class: inputs.fuel_class }} label="Explain these matches" />
         </p>
       )}
       {found && (

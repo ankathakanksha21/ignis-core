@@ -142,7 +142,7 @@ export type SimilarRow = {
   distance: number
 }
 
-export type Similar = { results: SimilarRow[]; nothing_close: boolean; tolerance: Record<string, number> }
+export type Similar = { query: Record<string, number>; results: SimilarRow[]; nothing_close: boolean; tolerance: Record<string, number> }
 
 export type Who = { psi_id: string; name: string }
 

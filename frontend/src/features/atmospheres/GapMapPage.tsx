@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useApi } from '../../api/useApi.ts'
 import { testLink } from '../../testLink.ts'
 import { useStored } from '../../useStored.ts'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 import { GapGrid } from './GapGrid.tsx'
 import { STEPS } from './steps.ts'
 import type { GapMap, Habitat, Nearest, Picked, Suggestion } from './types.ts'
@@ -126,6 +127,9 @@ export function GapMapPage() {
         {habitat.basis} {habitat.assumed && `Assumption: ${habitat.assumed}`}
       </p>
       <p className={habitat.gravity_g === 0 ? 'quiet' : 'note'}>{map.gravity_note}</p>
+      <p className="voice-line">
+        <VoiceGuide kind="gaps" params={{ habitat: habitatId }} label="Explain this gap map" />
+      </p>
 
       <h2>Tests per condition</h2>
       <p className="quiet">

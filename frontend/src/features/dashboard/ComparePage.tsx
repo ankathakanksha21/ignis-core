@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { readStored, writeStored } from '../../useStored.ts'
 import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 import { ConditionsChart } from './ConditionsChart.tsx'
 import { DashboardNav } from './DashboardNav.tsx'
 import { CONDITIONS, NOT_STATED, PILLAR_NAMES, gravity, range, testCount } from './format.ts'
@@ -102,6 +103,7 @@ export function ComparePage() {
             ))}
           </select>
         ))}
+        <VoiceGuide kind="compare" params={{ ids: key, mission: missionId }} label="Explain this comparison" />
       </p>
 
       {details && (

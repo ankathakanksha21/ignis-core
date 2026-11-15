@@ -5,6 +5,7 @@ import { NumberField } from '../../NumberField.tsx'
 import { useStored } from '../../useStored.ts'
 import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 import { DashboardNav } from './DashboardNav.tsx'
 import { NOT_STATED, PILLAR_NAMES } from './format.ts'
 import type { Factor, Mission, Missions, Ranking } from './types.ts'
@@ -194,6 +195,23 @@ export function RankingPage() {
       {error && <p role="alert">Could not rank: {error}</p>}
       {ranking && shown.length === 0 && (
         <p className="note">No experiment matches this fuel class and pillar together. Change one of them.</p>
+      )}
+      {shown.length > 0 && (
+        <p className="voice-line">
+          <VoiceGuide
+            kind="rank"
+            params={{
+              mission: current.mission,
+              o2_mole_fraction: current.oxygen / 100,
+              pressure_kpa: current.pressure,
+              gravity_g: current.gravity,
+              flow_cm_s: current.flow,
+              fuel_class: current.fuel,
+              pillar,
+            }}
+            label="Explain this ranking"
+          />
+        </p>
       )}
       {shown.length > 0 && (
         <p className="quiet list-head">

@@ -1,0 +1,92 @@
+import json
+import re
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app import voice
+from app.main import app
+
+client = TestClient(app)
+NUMBER = re.compile(r"\d+(?:\.\d+)?")
+
+
+@pytest.fixture(autouse=True)
+def no_keys(monkeypatch):
+    """No language model and no ElevenLabs, whatever .env holds on this machine."""
+    def refuse(*args, **kwargs):
+        raise RuntimeError("no key in tests")
+
+    monkeypatch.setattr(voice.llm, "chat", refuse)
+    monkeypatch.setattr(voice, "_env", lambda name: "")
+    voice._brief.cache_clear()
+    yield
+    voice._brief.cache_clear()
+
+
+def explain(kind, **params):
+    response = client.post("/api/voice/explain", json={"kind": kind, "params": params})
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_without_keys_code_writes_the_script_and_the_browser_voice_is_used():
+    body = explain("investigation", psi_id="PSI-69")
+    assert body["written_by"] == "code" and body["voice"] is None and "browser" in body["voice_note"]
+    assert "FLEX" in body["title"] and len(body["highlights"]) == 3
+    # Every number the fallback script says is one of the facts.
+    assert set(NUMBER.findall(body["script"])) <= set(NUMBER.findall(" ".join(body["facts"])))
+
+
+def test_every_page_kind_builds_facts_from_the_data():
+    compare = explain("compare", ids="PSI-69,PSI-25", mission="moon")
+    assert any(line.startswith("FLEX: ") and "12 to 34 %" in line for line in compare["facts"])
+    assert any(line.startswith("BASS-II: ") for line in compare["facts"])
+
+    rank = explain("rank", mission="moon", flow_cm_s=20, fuel_class="solid")
+    assert "20 cm/s flow" in rank["facts"][0] and "Rank 1: SAFFIRE-I" in " ".join(rank["facts"])
+    assert any("partial gravity" in line for line in rank["facts"])
+
+    gap = explain("gaps", habitat="moon")
+    assert any("Suggested experiment 1: solid fuels at 30 to 35% oxygen" in line for line in gap["facts"])
+
+    similar = explain("similar", o2_mole_fraction=0.3, pressure_kpa=70.3)
+    assert any(line.startswith("Closest test 1: FLEX row") for line in similar["facts"])
+
+
+def test_predictions_and_simulations_are_never_called_measurements():
+    inputs = {"fuel": "heptane", "o2_mole_fraction": 0.21, "co2_mole_fraction": 0, "he_mole_fraction": 0,
+              "pressure_kpa": 101.3, "droplet_diameter_mm": 3}  # fmt: skip
+    predicted = explain("prediction", model_id="flex_burning_rate", inputs=inputs)
+    assert any("model prediction, not a measurement" in line for line in predicted["facts"])
+    withheld = explain("prediction", model_id="flex_burning_rate", inputs={**inputs, "o2_mole_fraction": 0.6})
+    assert any("gave no answer" in line for line in withheld["facts"])
+    assert any(line.startswith("Outside the tested range: o2_mole_fraction") for line in withheld["facts"])
+
+    request = {"scenario": "droplet", "fuel": "heptane", "gravity_g": 0, "o2_mole_fraction": 0.21, "pressure_kpa": 101.3,
+               "droplet_diameter_mm": 3}  # fmt: skip
+    lab = explain("lab", request=request)
+    assert any("simulated, not measured" in line for line in lab["facts"])
+    refused = explain("lab", request={**request, "gravity_g": 0.16})
+    assert any("did not simulate" in line for line in refused["facts"])
+
+
+def test_a_model_script_is_used_only_when_its_numbers_are_in_the_facts(monkeypatch):
+    facts = ["Rows in the test table: 274 test", "Oxygen in the atmosphere: 12 to 34 %"]
+    good = {"script": "FLEX ran 274 tests, with oxygen from 12 to 34 percent. Ask me anything.", "highlights": ["274 tests"]}
+    assert voice.check_script(good, facts)[0]["highlights"] == ["274 tests"]
+    assert "275" in voice.check_script({**good, "script": "FLEX ran 275 tests."}, facts)[1]
+    assert "safe" in voice.check_script({**good, "script": "FLEX shows 34 percent oxygen is safe."}, facts)[1]
+    assert voice.check_script("not json", facts)[0] is None
+
+    replies = iter([json.dumps({**good, "script": "FLEX ran 999 tests."}), json.dumps(good)])
+    monkeypatch.setattr(voice.llm, "chat", lambda messages, **kwargs: next(replies))
+    monkeypatch.setitem(voice.KINDS, "investigation", lambda params: ("The FLEX page", facts))
+    body = explain("investigation", psi_id="PSI-69")
+    assert body["written_by"] == "model" and "274" in body["script"]  # the retry, after the invented number was refused
+
+
+def test_bad_requests_are_refused():
+    assert client.post("/api/voice/explain", json={"kind": "investigation", "params": {"psi_id": "PSI-0"}}).status_code == 404
+    assert client.post("/api/voice/explain", json={"kind": "weather", "params": {}}).status_code == 422
+    assert client.post("/api/voice/explain", json={"kind": "similar", "params": {}}).status_code == 422
