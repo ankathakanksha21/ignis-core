@@ -17,7 +17,7 @@ from .contract import (
     SimulateRequest,
     SimulateResponse,
 )
-from .models import flex_burning_rate
+from .models import cfig_hot_ignition, flex_burning_rate
 from .physics import droplet
 
 _PLANNED: dict[ModelId, dict] = {
@@ -46,7 +46,10 @@ _PLANNED: dict[ModelId, dict] = {
 
 
 # Models that are built. Anything in ModelId but not here answers not_implemented.
-_BUILT = {flex_burning_rate.MODEL_ID: flex_burning_rate}
+_BUILT = {
+    flex_burning_rate.MODEL_ID: flex_burning_rate,
+    cfig_hot_ignition.MODEL_ID: cfig_hot_ignition,
+}
 
 
 def model_cards() -> list[ModelCard]:
