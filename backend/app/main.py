@@ -9,7 +9,7 @@ from fastapi import FastAPI
 
 from ignis_ml import CONTRACT_VERSION
 
-from .routers import atmospheres, investigations, lab, predict, qa
+from .routers import atmospheres, investigations, lab, predict, qa, voice
 
 app = FastAPI(title="Flame in Freefall", version="0.1.0")
 
@@ -19,5 +19,5 @@ def health() -> dict:
     return {"status": "ok", "contract_version": CONTRACT_VERSION}
 
 
-for module in (investigations, atmospheres, predict, lab, qa):
+for module in (investigations, atmospheres, predict, lab, qa, voice):
     app.include_router(module.router, prefix="/api")

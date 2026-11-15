@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
 import type { ModelCard } from '../models/types.ts'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 import { DropletView } from './DropletView.tsx'
 import { figure, toRequest } from './types.ts'
 import type { Settings, Simulation } from './types.ts'
@@ -167,6 +168,9 @@ export function DropletLab() {
           {state && result ? (
             <>
               <DropletView key={request} state={state} fuel={settings.fuel} />
+              <p className="voice-line">
+                <VoiceGuide kind="lab" params={{ request: toRequest(settings) }} label="Explain this simulation" />
+              </p>
               <dl className="tiles">
                 <div>
                   <dt>Burning rate</dt>

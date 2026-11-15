@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApi } from '../../api/useApi.ts'
+import { AiExplain } from '../voice/AiExplain.tsx'
 import { figure } from './types.ts'
 import type { Flex, FlexRow } from './types.ts'
 
@@ -170,6 +171,7 @@ export function Explorer() {
           . {data.note}
         </p>
       </figure>
+      <AiExplain kind="pattern" params={{ x: xKey, y: yKey, group: groupKey }} heading="What this plot shows" label="Listen and ask about this plot" />
     </>
   )
 }

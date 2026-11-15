@@ -5,6 +5,7 @@ import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
 import { EXAMPLES, defaults, label, pretty, shown, toRequest, unit } from './inputs.ts'
 import type { Inputs } from './inputs.ts'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 import { Result } from './Result.tsx'
 import type { ModelCard, Prediction } from './types.ts'
 import './models.css'
@@ -68,6 +69,11 @@ function Panel({ card }: { card: ModelCard }) {
         <h2>Result</h2>
         {error && <p role="alert">Could not reach the model: {error}</p>}
         {result && <Result card={card} result={result} />}
+        {result && (
+          <p className="voice-line left">
+            <VoiceGuide kind="prediction" params={{ model_id: card.model_id, inputs: JSON.parse(request) }} label="Explain this result" />
+          </p>
+        )}
       </div>
     </div>
   )

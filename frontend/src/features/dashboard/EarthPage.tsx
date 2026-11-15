@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import { useTitle } from '../../useTitle.ts'
 import { Link } from 'react-router-dom'
 import { useApi } from '../../api/useApi.ts'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 import { DashboardNav } from './DashboardNav.tsx'
 import type { EarthPanel, Who } from './types.ts'
 
@@ -28,6 +29,9 @@ export function EarthPage() {
         <p className="lede">In NASA's own words. Each quote links to its source.</p>
         <DashboardNav />
       </header>
+      <p className="voice-line">
+        <VoiceGuide kind="earth" params={{}} label="Explain the Earth uses" />
+      </p>
       {error && <p role="alert">Could not load the Earth uses: {error}</p>}
       {!data && !error && <p className="loading">Loading…</p>}
 
