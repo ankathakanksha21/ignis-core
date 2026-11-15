@@ -496,8 +496,14 @@ dd {
 .series-1 { fill: var(--series-1); }
 .series-2 { fill: var(--series-2); }
 
+/* On a narrow screen the plot keeps a readable width and scrolls sideways. */
 .plot {
+  overflow-x: auto;
+}
+
+.plot-inner {
   position: relative;
+  min-width: 34rem;
 }
 
 .plot svg {

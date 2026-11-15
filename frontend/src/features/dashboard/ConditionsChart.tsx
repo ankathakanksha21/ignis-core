@@ -67,75 +67,77 @@ export function ConditionsChart({ series, mission }: { series: PointSeries[]; mi
       </ul>
 
       <div className="plot">
-        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Oxygen against pressure for ${series.map((s) => s.name).join(', ')}`}>
-          {ticks(0, y1, y1 > 400 ? 100 : 50).map((kpa) => (
-            <g key={kpa}>
-              <line className="grid" x1={PLOT.left} x2={PLOT.right} y1={sy(kpa)} y2={sy(kpa)} />
-              <text className="tick" x={PLOT.left - 8} y={sy(kpa)} textAnchor="end" dominantBaseline="middle">
-                {kpa}
+        <div className="plot-inner">
+          <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Oxygen against pressure for ${series.map((s) => s.name).join(', ')}`}>
+            {ticks(0, y1, y1 > 400 ? 100 : 50).map((kpa) => (
+              <g key={kpa}>
+                <line className="grid" x1={PLOT.left} x2={PLOT.right} y1={sy(kpa)} y2={sy(kpa)} />
+                <text className="tick" x={PLOT.left - 8} y={sy(kpa)} textAnchor="end" dominantBaseline="middle">
+                  {kpa}
+                </text>
+              </g>
+            ))}
+            {ticks(x0, x1, x1 - x0 > 50 ? 10 : 5).map((percent) => (
+              <text key={percent} className="tick" x={sx(percent)} y={PLOT.bottom + 16} textAnchor="middle">
+                {percent}
               </text>
-            </g>
-          ))}
-          {ticks(x0, x1, x1 - x0 > 50 ? 10 : 5).map((percent) => (
-            <text key={percent} className="tick" x={sx(percent)} y={PLOT.bottom + 16} textAnchor="middle">
-              {percent}
+            ))}
+            <line className="axis" x1={PLOT.left} x2={PLOT.right} y1={PLOT.bottom} y2={PLOT.bottom} />
+            <text className="axis-title" x={(PLOT.left + PLOT.right) / 2} y={H - 8} textAnchor="middle">
+              Oxygen in the atmosphere (%)
             </text>
-          ))}
-          <line className="axis" x1={PLOT.left} x2={PLOT.right} y1={PLOT.bottom} y2={PLOT.bottom} />
-          <text className="axis-title" x={(PLOT.left + PLOT.right) / 2} y={H - 8} textAnchor="middle">
-            Oxygen in the atmosphere (%)
-          </text>
-          <text className="axis-title" x={14} y={(PLOT.top + PLOT.bottom) / 2} textAnchor="middle" transform={`rotate(-90 14 ${(PLOT.top + PLOT.bottom) / 2})`}>
-            Pressure (kPa)
-          </text>
+            <text className="axis-title" x={14} y={(PLOT.top + PLOT.bottom) / 2} textAnchor="middle" transform={`rotate(-90 14 ${(PLOT.top + PLOT.bottom) / 2})`}>
+              Pressure (kPa)
+            </text>
 
-          <line className="grid" x1={PLOT.left} x2={PLOT.right} y1={LANE - 52} y2={LANE - 52} />
-          <text className="tick" x={PLOT.left} y={LANE - 36}>
-            Pressure not stated or flagged
-          </text>
+            <line className="grid" x1={PLOT.left} x2={PLOT.right} y1={LANE - 52} y2={LANE - 52} />
+            <text className="tick" x={PLOT.left} y={LANE - 36}>
+              Pressure not stated or flagged
+            </text>
 
-          {mission.open_ended && <rect className="habitat-zone" x={hx} y={hy} width={PLOT.right - hx} height={PLOT.bottom - hy} />}
-          <line className="habitat-line" x1={hx} x2={hx} y1={PLOT.top} y2={PLOT.bottom} />
-          <line className="habitat-line" x1={hx} x2={hx} y1={LANE - 26} y2={LANE + 24} />
-          <line className="habitat-line" x1={PLOT.left} x2={PLOT.right} y1={hy} y2={hy} />
+            {mission.open_ended && <rect className="habitat-zone" x={hx} y={hy} width={PLOT.right - hx} height={PLOT.bottom - hy} />}
+            <line className="habitat-line" x1={hx} x2={hx} y1={PLOT.top} y2={PLOT.bottom} />
+            <line className="habitat-line" x1={hx} x2={hx} y1={LANE - 26} y2={LANE + 24} />
+            <line className="habitat-line" x1={PLOT.left} x2={PLOT.right} y1={hy} y2={hy} />
 
-          {marks.map((mark) => (
-            <g
-              key={`${mark.series}-${mark.point.o2}-${mark.point.pressure_kpa ?? 'none'}`}
-              className={`mark series-${mark.series}`}
-              tabIndex={0}
-              onPointerEnter={() => setHover(mark)}
-              onPointerLeave={() => setHover(null)}
-              onFocus={() => setHover(mark)}
-              onBlur={() => setHover(null)}
-            >
-              <circle className="hit" cx={mark.x} cy={mark.y} r={12} />
-              <Shape kind={mark.series} x={mark.x} y={mark.y} r={mark.r} />
-            </g>
-          ))}
+            {marks.map((mark) => (
+              <g
+                key={`${mark.series}-${mark.point.o2}-${mark.point.pressure_kpa ?? 'none'}`}
+                className={`mark series-${mark.series}`}
+                tabIndex={0}
+                onPointerEnter={() => setHover(mark)}
+                onPointerLeave={() => setHover(null)}
+                onFocus={() => setHover(mark)}
+                onBlur={() => setHover(null)}
+              >
+                <circle className="hit" cx={mark.x} cy={mark.y} r={12} />
+                <Shape kind={mark.series} x={mark.x} y={mark.y} r={mark.r} />
+              </g>
+            ))}
 
-          <circle className="habitat-point" cx={hx} cy={hy} r={6} />
-          <text className="habitat-label" x={hx + 10} y={hy - 9}>
-            {mission.label}
-          </text>
-        </svg>
+            <circle className="habitat-point" cx={hx} cy={hy} r={6} />
+            <text className="habitat-label" x={hx + 10} y={hy - 9}>
+              {mission.label}
+            </text>
+          </svg>
 
-        {hover && (
-          <div className="tip" style={{ left: `${(hover.x / W) * 100}%`, top: `${(hover.y / H) * 100}%` }} data-side={hover.x > W * 0.65 ? 'left' : 'right'}>
-            <strong>
-              {Number((hover.point.o2 * 100).toPrecision(3))}% oxygen
-              {hover.point.pressure_kpa === undefined
-                ? ', pressure not stated or flagged'
-                : `, ${hover.point.pressure_kpa} kPa (${(hover.point.pressure_kpa / KPA_PER_PSI).toFixed(1)} psi)`}
-            </strong>
-            <span className={`key series-${hover.series}`}>{series[hover.series].name}</span>
-            <span>
-              {hover.point.rows.length === 1 ? 'Row' : `${hover.point.rows.length} rows:`} {hover.point.rows.slice(0, 6).join(', ')}
-              {hover.point.rows.length > 6 && '…'}
-              {hover.point.approximate && '. Approximate.'}
-            </span>
-          </div>
-        )}
+          {hover && (
+            <div className="tip" style={{ left: `${(hover.x / W) * 100}%`, top: `${(hover.y / H) * 100}%` }} data-side={hover.x > W * 0.65 ? 'left' : 'right'}>
+              <strong>
+                {Number((hover.point.o2 * 100).toPrecision(3))}% oxygen
+                {hover.point.pressure_kpa === undefined
+                  ? ', pressure not stated or flagged'
+                  : `, ${hover.point.pressure_kpa} kPa (${(hover.point.pressure_kpa / KPA_PER_PSI).toFixed(1)} psi)`}
+              </strong>
+              <span className={`key series-${hover.series}`}>{series[hover.series].name}</span>
+              <span>
+                {hover.point.rows.length === 1 ? 'Row' : `${hover.point.rows.length} rows:`} {hover.point.rows.slice(0, 6).join(', ')}
+                {hover.point.rows.length > 6 && '…'}
+                {hover.point.approximate && '. Approximate.'}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       <ul className="notes">
