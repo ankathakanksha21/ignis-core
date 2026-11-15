@@ -5,7 +5,7 @@ from collections import Counter
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from .. import catalog, conditions, ranking, store, summaries
+from .. import catalog, conditions, earth, ranking, store, summaries
 
 router = APIRouter(prefix="/investigations", tags=["investigations"])
 
@@ -143,6 +143,11 @@ def get_points(ids: str) -> dict:
     if not 1 <= len(wanted) <= 3 or any(psi_id not in known or not known[psi_id]["in_scope"] for psi_id in wanted):
         raise HTTPException(404, "Give one to three combustion investigation ids, separated by commas")
     return {"series": [conditions.points(psi_id) for psi_id in wanted]}
+
+
+@router.get("/earth")
+def earth_uses() -> dict:
+    return earth.panel()
 
 
 @router.get("/{psi_id}")

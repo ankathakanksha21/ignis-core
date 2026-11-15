@@ -219,13 +219,15 @@ dd {
 
 .dashboard-nav {
   display: flex;
-  gap: 1.2rem;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.2rem;
   margin-bottom: 1rem;
   border-bottom: 1px solid var(--line);
 }
 
 .dashboard-nav a {
   padding-bottom: 0.4rem;
+  white-space: nowrap;
   color: var(--quiet);
   text-decoration: none;
 }
@@ -660,4 +662,55 @@ dd {
   border: 0;
   padding: 0;
   color: var(--quiet);
+}
+
+.earth h2 {
+  margin: 1.8rem 0 0.2rem;
+}
+
+.earth .quiet {
+  max-width: 46rem;
+  margin-top: 0;
+}
+
+.themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+  gap: 0.9rem;
+  align-items: start;
+  margin: 0.8rem 0;
+}
+
+.theme {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.theme h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1.05rem;
+}
+
+.theme figure {
+  margin: 0 0 0.9rem;
+}
+
+.theme blockquote {
+  margin: 0 0 0.3rem;
+  padding-left: 0.7rem;
+  border-left: 3px solid var(--line);
+  font-size: 0.92rem;
+}
+
+.theme figcaption {
+  margin: 0;
+  padding-left: 0.85rem;
+  color: var(--quiet);
+  font-size: 0.85rem;
+}
+
+.theme blockquote + blockquote {
+  margin-top: 0.6rem;
 }
