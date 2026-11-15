@@ -133,8 +133,11 @@ export function GapMapPage() {
 
       <h2>Tests per condition</h2>
       <p className="quiet">
-        Oxygen runs across and pressure (kPa) runs up. The orange ring marks the habitat.
-        {habitat.open_ended && ' Orange-edged cells also fit it.'} Click a cell to open its tests.
+        Oxygen runs across and pressure (kPa) runs up. The orange ring marks the cell that holds the habitat's own oxygen and
+        pressure.
+        {habitat.open_ended &&
+          ` The brief gives this habitat as bounds, ${percent(habitat.o2_mole_fraction)} oxygen or more and ${habitat.pressure_kpa} kPa or less, so every cell with at least that oxygen and at most that pressure also fits it. Those cells have a thin orange edge. An empty one is a condition this habitat could have that NASA has not tested.`}{' '}
+        Click a cell to open its tests.
       </p>
       <ul className="gap-legend">
         <li>
@@ -148,6 +151,11 @@ export function GapMapPage() {
         <li>
           <span className="gap-cell level-0 home" /> {habitat.label}
         </li>
+        {habitat.open_ended && (
+          <li>
+            <span className="gap-cell level-0 in-bounds" /> also inside the {habitat.label} bounds
+          </li>
+        )}
         {map.suggestions.length > 0 && (
           <li>
             <span className="gap-cell level-0 suggested">
