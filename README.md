@@ -64,6 +64,16 @@ cd frontend && npm run lint && npm run build
 
 CI runs all three on every pull request.
 
+## Rebuild the processed data
+
+`data/processed/` is built from `data/raw/`. After changing anything in `backend/app/ingest/`:
+
+```bash
+cd backend && python -m app.ingest
+```
+
+Commit the code and the rebuilt files together. A backend test fails if they disagree.
+
 ## The language-model key
 
 Copy `.env.example` to `.env` and put the key there. `.env` is git-ignored. Never commit the key or paste it into an issue, pull request or notebook; CI fails if one appears in the tree.
