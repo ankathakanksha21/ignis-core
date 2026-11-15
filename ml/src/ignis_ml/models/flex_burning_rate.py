@@ -40,6 +40,7 @@ from ..contract import (
 from ..features.flex import PSI_ID, SOURCE_COLUMNS, Exclusion, load_flex
 from ..guards import RANGE_MARGIN, build_specs, check_inputs
 from ..nearest import nearest_tests
+from ..outside import REPORT, load_outside_tests
 from ..raw import investigation, read_raw_table
 
 MODEL_ID = "flex_burning_rate"
@@ -238,6 +239,55 @@ def fitted() -> Fitted:
     )
 
 
+@dataclass(frozen=True)
+class OutsideCheck:
+    tests: int  # usable tests in the outside report
+    answered: int  # of those, inside the tested range, so the model would answer
+    mae: float  # on the answered tests
+    mean_mae: float  # the same tests, always answering the FLEX training mean
+    median_error: float
+    by_experiment: dict[str, tuple[int, float]]  # experiment -> (tests answered, mae)
+
+
+@lru_cache(maxsize=1)
+def outside_check() -> OutsideCheck:
+    """The served model against heptane droplet tests from a 1997 Spacelab
+    experiment it was not trained on. Only tests the range check would let
+    through are scored, because those are the only ones it would answer."""
+    fit = fitted()
+    tests = load_outside_tests()
+    inside = [
+        not check_inputs(fit.specs, row[FEATURES].to_dict(), fit.train, presence_groups=[DILUENTS]).violations
+        for _, row in tests.iterrows()
+    ]
+    answered = tests[inside]
+    measured = answered[TARGET].to_numpy()
+    errors = np.abs(measured - fit.model.predict(answered[FEATURES]))
+    return OutsideCheck(
+        tests=len(tests),
+        answered=len(answered),
+        mae=float(errors.mean()),
+        mean_mae=float(np.abs(measured - fit.train[TARGET].mean()).mean()),
+        median_error=float(np.median(errors)),
+        by_experiment={
+            name: (int(mask.sum()), float(errors[mask].mean()))
+            for name in sorted(answered["experiment"].unique())
+            for mask in [(answered["experiment"] == name).to_numpy()]
+        },
+    )
+
+
+def _outside_note(check: OutsideCheck) -> str:
+    split = " and ".join(f"{mae:.2f} on the {n} {name} tests" for name, (n, mae) in check.by_experiment.items())
+    return (
+        f"Outside check, not used in training: {check.tests} heptane droplet tests from a 1997 Spacelab experiment"
+        f" ({REPORT}). {check.tests - check.answered} are outside the FLEX range and would be withheld. On the"
+        f" {check.answered} it would answer, all in cabin air, the error is {check.mae:.2f} {TARGET_UNIT} (median"
+        f" {check.median_error:.2f}) against {check.mean_mae:.2f} for the mean: {split}. That is several times the"
+        " error on FLEX itself, so the model should not be trusted far from FLEX hardware."
+    )
+
+
 def _notes(fit: Fitted) -> str:
     by_reason: dict[str, list[int]] = {}
     for item in fit.left_out:
@@ -256,6 +306,7 @@ def _notes(fit: Fitted) -> str:
             f"The low-high range holds {RANGE_COVERAGE:.0%} of the cross-validated errors for that fuel: "
             + ", ".join(f"{fuel} {low:+.2f} to {high:+.2f}" for fuel, (low, high) in fit.ranges.items())
             + f" {TARGET_UNIT}.",
+            _outside_note(outside_check()),
             "Column headers lost their subscripts in PSI: O, N and CO are read as O2, N2 and CO2,"
             " and 'Burning rate; mm' is read as mm^2/s. Nitrogen is the balance gas and is not an input.",
             "Inputs are also checked per fuel, and CO2 with helium is withheld because FLEX never tested them together.",
@@ -285,6 +336,15 @@ def card() -> ModelCard:
             value=fit.by_test_date[fit.served].mae,
             baseline_name="mean",
             baseline_value=fit.by_test_date["mean"].mae,
+        )
+    )
+    check = outside_check()
+    evaluation.append(
+        Metric(
+            name=f"mae, outside check on {check.answered} heptane tests from {REPORT} (not used in training)",
+            value=check.mae,
+            baseline_name="mean",
+            baseline_value=check.mean_mae,
         )
     )
     return ModelCard(
