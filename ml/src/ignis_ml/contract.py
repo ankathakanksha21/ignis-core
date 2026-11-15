@@ -27,6 +27,7 @@ ModelId = Literal[
     "flex_burning_rate",
     "flex_extinction",
     "cfig_cool_flame",
+    "cfig_hot_ignition",
     "solid_flame_spread",
 ]
 
