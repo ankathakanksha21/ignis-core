@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTitle } from '../../useTitle.ts'
 import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { readStored, writeStored } from '../../useStored.ts'
 import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
 import { ConditionsChart } from './ConditionsChart.tsx'
@@ -41,9 +42,12 @@ const ROWS: { label: string; value: (detail: Detail) => ReactNode; text?: (detai
 
 export function ComparePage() {
   const [params, setParams] = useSearchParams()
-  const ids = (params.get('ids') ?? DEFAULT_IDS).split(',').filter(Boolean).slice(0, 3)
-  const missionId = params.get('mission') ?? 'moon'
+  // The last comparison is kept for the tab, so the Compare tab reopens on it and not on the default three.
+  const kept = readStored<{ ids: string; mission: string }>('compare.query')
+  const ids = (params.get('ids') ?? kept?.ids ?? DEFAULT_IDS).split(',').filter(Boolean).slice(0, 3)
+  const missionId = params.get('mission') ?? kept?.mission ?? 'moon'
   const key = ids.join(',')
+  useEffect(() => writeStored('compare.query', { ids: key, mission: missionId }), [key, missionId])
 
   const { data: listing } = useApi<Listing>('/investigations')
   const { data: setup } = useApi<Missions>('/investigations/missions')

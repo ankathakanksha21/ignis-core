@@ -46,8 +46,10 @@ FACTORS = {
     "fuel": "Fuel type",
     "gravity": "Gravity",
     "pillar": "Pillar",
+    "flow": "Flow match",
 }
-DEFAULT_WEIGHTS = {"oxygen": 3.0, "pressure": 2.0, "fuel": 3.0, "gravity": 1.0, "pillar": 1.0}
+# Flow is scored only when the request gives a flow, so it never dilutes a ranking that did not ask for it.
+DEFAULT_WEIGHTS = {"oxygen": 3.0, "pressure": 2.0, "fuel": 3.0, "gravity": 1.0, "pillar": 1.0, "flow": 2.0}
 
 # A match scores 1 at the target and falls in a straight line to 0 this far away.
 TOLERANCE = {"o2_mole_fraction": 0.10, "pressure_kpa": 35.0, "flow_cm_s": 10.0}
@@ -126,7 +128,7 @@ def _pillar(entry: dict) -> dict:
 
 
 def rank(profile: dict, weights: dict[str, float]) -> list[dict]:
-    total_weight = sum(weights.values())
+    flow = profile.get("flow_cm_s")
     results = []
     for entry in store.investigations().values():
         if not entry["in_scope"]:
@@ -139,8 +141,11 @@ def rank(profile: dict, weights: dict[str, float]) -> list[dict]:
             _gravity(entry, profile["gravity_g"]),
             _pillar(entry),
         ]
+        if flow is not None:
+            factors.append(_match("flow", psi_id, "flow_cm_s", flow, lambda cm_s: f"{cm_s:.3g} cm/s"))
         for factor in factors:
             factor["weight"] = weights[factor["id"]]
+        total_weight = sum(factor["weight"] for factor in factors)
         score = sum(f["score"] * f["weight"] for f in factors) / total_weight if total_weight else 0.0
         results.append({"psi_id": psi_id, "name": entry["name"], "pillar": catalog.PILLAR_OF[psi_id][0],
                         "fuel_class": entry["fuel_class"], "score": round(score, 3), "factors": factors})  # fmt: skip

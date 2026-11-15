@@ -88,7 +88,7 @@ export type Mission = {
 export type Missions = {
   missions: Mission[]
   factors: { id: string; label: string; weight: number }[]
-  tolerance: { o2_mole_fraction: number; pressure_kpa: number }
+  tolerance: { o2_mole_fraction: number; pressure_kpa: number; flow_cm_s: number }
   fuel_relevance: { fuel_class: string; score: number; why: string }[]
 }
 
@@ -152,4 +152,17 @@ export type EarthPanel = {
   not_quoted: Who[]
   spinoffs: { product: string; sources: { title: string; publication: string; url: string; quotes: string[] }[] }[]
   spinoffs_checked: string
+}
+
+// Shape returned by /api/investigations/{psi_id}/rows: table rows as NASA published them.
+
+export type RawRows = {
+  psi_id: string
+  name: string
+  file_name: string
+  doi: string | null
+  columns: string[]
+  rows: { row: number; cells: string[]; flagged: number[] }[]
+  asked: number
+  missing: number[]
 }

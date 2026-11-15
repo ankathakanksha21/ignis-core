@@ -3,6 +3,7 @@
 from collections import Counter
 
 from fastapi import APIRouter, HTTPException
+from ignis_ml import raw
 from pydantic import BaseModel, Field
 
 from .. import catalog, conditions, earth, ranking, store, summaries
@@ -73,6 +74,8 @@ class RankRequest(BaseModel):
     o2_mole_fraction: float | None = Field(default=None, ge=0, le=1)
     pressure_kpa: float | None = Field(default=None, gt=0)
     gravity_g: float | None = Field(default=None, ge=0, le=1)
+    # No mission states a flow. Give one to add the flow factor to the score.
+    flow_cm_s: float | None = Field(default=None, ge=0)
     weights: dict[str, float] = {}
 
 
@@ -100,6 +103,8 @@ def rank_investigations(request: RankRequest) -> dict:
     profile = {key: mission[key] for key in ("o2_mole_fraction", "pressure_kpa", "gravity_g")}
     edits = {key: value for key in profile if (value := getattr(request, key)) is not None and value != profile[key]}
     profile.update(edits)
+    if request.flow_cm_s is not None:
+        profile["flow_cm_s"] = edits["flow_cm_s"] = request.flow_cm_s
     weights = {**ranking.DEFAULT_WEIGHTS, **request.weights}
     return {
         "mission": request.mission,
@@ -148,6 +153,46 @@ def get_points(ids: str) -> dict:
 @router.get("/earth")
 def earth_uses() -> dict:
     return earth.panel()
+
+
+MAX_ROWS = 60  # enough for the fullest gap-map cell link; the page says when a link asked for more
+
+
+@router.get("/{psi_id}/rows")
+def get_rows(psi_id: str, rows: str, file: str | None = None) -> dict:
+    """Table rows exactly as NASA published them, so a link can open the tests it names."""
+    entry = store.investigations().get(psi_id)
+    if entry is None or not entry["in_scope"] or not entry["tables"]:
+        raise HTTPException(404, f"{psi_id} has no test table")
+    file_name = file or entry["tables"][0]["file_name"]
+    if file_name not in {table["file_name"] for table in entry["tables"]}:
+        raise HTTPException(404, f"{psi_id} has no table named {file_name!r}")
+    try:
+        wanted = sorted({int(number) for number in rows.split(",") if number.strip()})
+    except ValueError:
+        raise HTTPException(422, "rows is a list of row numbers separated by commas") from None
+    if not wanted:
+        raise HTTPException(422, "Give at least one row number")
+
+    table = raw.read_raw_table(psi_id, file_name)
+    columns = [name for name in table.columns if name not in ("psi_id", "file_name", "row")]
+    found = table[table["row"].isin(wanted[:MAX_ROWS])]
+    flagged = {(int(flag["row"]), flag["column"]) for flag in store.flags()
+               if flag["psi_id"] == psi_id and flag["file_name"] == file_name}  # fmt: skip
+    return {
+        "psi_id": psi_id,
+        "name": entry["name"],
+        "file_name": file_name,
+        "doi": entry["doi"],
+        "columns": [name.strip() for name in columns],
+        "rows": [
+            {"row": int(line["row"]), "cells": [line[name] for name in columns],
+             "flagged": [index for index, name in enumerate(columns) if (int(line["row"]), name) in flagged]}
+            for _, line in found.iterrows()
+        ],
+        "asked": len(wanted),
+        "missing": [number for number in wanted[:MAX_ROWS] if number not in set(found["row"])],
+    }  # fmt: skip
 
 
 @router.get("/{psi_id}")

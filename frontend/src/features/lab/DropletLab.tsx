@@ -166,7 +166,7 @@ export function DropletLab() {
           </h2>
           {state && result ? (
             <>
-              <DropletView key={request} state={state} />
+              <DropletView key={request} state={state} fuel={settings.fuel} />
               <dl className="tiles">
                 <div>
                   <dt>Burning rate</dt>

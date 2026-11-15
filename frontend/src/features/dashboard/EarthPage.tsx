@@ -38,15 +38,19 @@ export function EarthPage() {
           <div className="themes">
             {data.themes.map((theme) => (
               <section key={theme.id} className="theme reveal">
-                <h3>{theme.label}</h3>
-                {theme.quotes.map((quote) => (
-                  <figure key={quote.text}>
-                    <blockquote>“{quote.text}”</blockquote>
-                    <figcaption>
-                      <Names people={quote.investigations} />
-                    </figcaption>
-                  </figure>
-                ))}
+                <h3>
+                  {theme.label} <small>{theme.quotes.length === 1 ? '1 quote' : `${theme.quotes.length} quotes`}</small>
+                </h3>
+                <div className="theme-body" tabIndex={0}>
+                  {theme.quotes.map((quote) => (
+                    <figure key={quote.text}>
+                      <blockquote>“{quote.text}”</blockquote>
+                      <figcaption>
+                        <Names people={quote.investigations} />
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
               </section>
             ))}
           </div>
@@ -64,19 +68,21 @@ export function EarthPage() {
             {data.spinoffs.map((entry) => (
               <section key={entry.product} className="theme reveal">
                 <h3>{entry.product}</h3>
-                {entry.sources.map((source) => (
-                  <figure key={source.url}>
-                    {source.quotes.map((quote) => (
-                      <blockquote key={quote}>“{quote}”</blockquote>
-                    ))}
-                    <figcaption>
-                      <a href={source.url} target="_blank" rel="noreferrer">
-                        {source.title}
-                      </a>
-                      , {source.publication}
-                    </figcaption>
-                  </figure>
-                ))}
+                <div className="theme-body" tabIndex={0}>
+                  {entry.sources.map((source) => (
+                    <figure key={source.url}>
+                      {source.quotes.map((quote) => (
+                        <blockquote key={quote}>“{quote}”</blockquote>
+                      ))}
+                      <figcaption>
+                        <a href={source.url} target="_blank" rel="noreferrer">
+                          {source.title}
+                        </a>
+                        , {source.publication}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
               </section>
             ))}
           </div>

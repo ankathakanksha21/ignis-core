@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTitle } from '../../useTitle.ts'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { testLink } from '../../testLink.ts'
+import { useStored } from '../../useStored.ts'
 import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
 import { DashboardNav } from './DashboardNav.tsx'
@@ -15,9 +17,34 @@ const FIELDS = [
 
 type Inputs = { o2_mole_fraction: string; pressure_kpa: string; flow_cm_s: string; fuel_class: string }
 
+const FUEL_CLASSES = ['solid', 'droplet', 'gas', 'smoke']
+
+/** Conditions carried in the address, as the Rank page's "Find similar tests" link sends them. */
+function fromLink(params: URLSearchParams): Inputs | undefined {
+  if (!['o2', 'pressure', 'flow', 'fuel'].some((name) => params.has(name))) return undefined
+  const fuel = params.get('fuel') ?? ''
+  return {
+    o2_mole_fraction: params.get('o2') ?? '',
+    pressure_kpa: params.get('pressure') ?? '',
+    flow_cm_s: params.get('flow') ?? '',
+    fuel_class: FUEL_CLASSES.includes(fuel) ? fuel : '',
+  }
+}
+
 export function SimilarPage() {
   const { data: setup } = useApi<Missions>('/investigations/missions')
-  const [inputs, setInputs] = useState<Inputs>({ o2_mole_fraction: '30', pressure_kpa: '70.3', flow_cm_s: '', fuel_class: '' })
+  const [params, setParams] = useSearchParams()
+  // Kept for the tab, so the search is still here after a visit to another page. A link's own conditions win.
+  const [inputs, setInputs] = useStored<Inputs>(
+    'similar.inputs',
+    { o2_mole_fraction: '30', pressure_kpa: '70.3', flow_cm_s: '', fuel_class: '' },
+    fromLink(params),
+  )
+  const carried = params.toString() !== ''
+  useEffect(() => {
+    // Once read, drop them from the address so a reload keeps what was typed since.
+    if (carried) setParams({}, { replace: true })
+  }, [carried, setParams])
   const [found, setFound] = useState<Similar | null>(null)
   const [error, setError] = useState<string | null>(null)
   const request = JSON.stringify(inputs)
@@ -76,7 +103,7 @@ export function SimilarPage() {
           Fuel class{' '}
           <select value={inputs.fuel_class} onChange={(event) => change({ fuel_class: event.target.value })}>
             <option value="">any</option>
-            {['solid', 'droplet', 'gas', 'smoke'].map((name) => (
+            {FUEL_CLASSES.map((name) => (
               <option key={name}>{name}</option>
             ))}
           </select>
@@ -108,7 +135,8 @@ export function SimilarPage() {
                 return (
                   <tr key={`${row.file_name}-${row.row}`}>
                     <td>
-                      <Link to={`/dashboard/${row.psi_id}`}>{row.name}</Link>, row {row.row}
+                      <Link to={`/dashboard/${row.psi_id}`}>{row.name}</Link>,{' '}
+                      <Link to={testLink(row.psi_id, row.file_name, [row.row])}>row {row.row}</Link>
                       {row.row_kind === 'summary' && <small> summary row</small>}
                     </td>
                     <td>{row.fuel ?? NOT_STATED}</td>

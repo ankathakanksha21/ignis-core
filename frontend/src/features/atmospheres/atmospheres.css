@@ -219,3 +219,119 @@
   min-width: 46rem;
   max-width: none;
 }
+
+/* Cells are buttons: click one to keep it open and get links to its tests. */
+button.gap-cell {
+  padding: 0;
+  border: 0;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button.gap-cell:active:not(:disabled) {
+  transform: scale(1.08);
+}
+
+/* An empty cell the page suggests testing next carries its rank in a dashed edge. */
+.gap-cell.suggested {
+  outline: 1.5px dashed var(--accent);
+  outline-offset: -2px;
+}
+
+.gap-cell .rank {
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-style: italic;
+}
+
+.gap-cell.picked,
+.gap-cell.lit {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+  transform: scale(1.12);
+}
+
+.gap-cell.lit {
+  outline-color: var(--accent);
+}
+
+.gap-picked {
+  max-width: 52rem;
+  margin: 0.9rem 0 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+
+.gap-picked p {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.gap-picked strong {
+  font-weight: 500;
+}
+
+.gap-picked button {
+  flex: none;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+.gap-picked ul {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gap-picked li {
+  margin: 0.3rem 0;
+  color: var(--muted);
+}
+
+.gap-picked small {
+  color: var(--faint);
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
+.chosen ol {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.3rem;
+  color: var(--muted);
+}
+
+.chosen li {
+  margin: 0.3rem 0;
+}
+
+.suggestions li {
+  padding-left: 3rem;
+}
+
+.suggestions .rank {
+  position: absolute;
+  top: 0.85rem;
+  left: 1rem;
+  display: grid;
+  width: 1.4rem;
+  height: 1.4rem;
+  place-items: center;
+  border: 1.5px dashed var(--accent);
+  border-radius: 5px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.suggestions .working {
+  color: var(--faint);
+  font: 400 0.76rem var(--font-mono);
+}
