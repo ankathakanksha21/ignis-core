@@ -251,6 +251,11 @@ def card() -> ModelCard:
     )
 
 
+def estimate(fit: Fitted, values: dict[str, float | str]) -> float:
+    """The served model's burning-rate constant for checked inputs, in mm^2/s."""
+    return float(fit.model.predict(pd.DataFrame([values])[FEATURES])[0])
+
+
 def _nearest(fit: Fitted, values: dict[str, float | str], n: int) -> list[TestRef]:
     return nearest_tests(
         fit.train, fit.raw, values, fit.scales, n, CITED_COLUMNS, match=CATEGORICAL, doi=fit.table.doi
@@ -281,7 +286,7 @@ def predict(request: PredictRequest) -> PredictResponse:
             model_version=VERSION,
         )
 
-    value = float(fit.model.predict(pd.DataFrame([checked.values])[FEATURES])[0])
+    value = estimate(fit, checked.values)
     closest = _nearest(fit, checked.values, max(request.n_nearest, 1))
     message = f"Predicted by {fit.served} trained on {len(fit.train)} FLEX tests in microgravity."
     if closest[0].distance > FAR_DISTANCE:
