@@ -40,6 +40,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
           {pages.map((page) => (
             <Route key={page.path} path={`${page.path}/*`} element={page.element} />
           ))}

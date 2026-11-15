@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTitle } from '../../useTitle.ts'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../../api/client.ts'
 import { useApi } from '../../api/useApi.ts'
@@ -117,9 +118,10 @@ function About({ card }: { card: ModelCard }) {
 export function ModelsPage() {
   const { data: cards, error } = useApi<ModelCard[]>('/models')
   const [params, setParams] = useSearchParams()
+  useTitle('Models')
 
   if (error) return <p role="alert">Could not reach the backend: {error}</p>
-  if (!cards) return <p>Loading…</p>
+  if (!cards) return <p className="loading">Loading…</p>
   const built = cards.filter((card) => card.status === 'available')
   const chosen = built.find((card) => card.model_id === params.get('model')) ?? built[0]
 
@@ -149,7 +151,8 @@ export function ModelsPage() {
         <>
           <p className="model-what">
             {chosen.task === 'matcher' ? 'Finds' : 'Predicts'} {chosen.target}
-            {chosen.target_unit && ` in ${pretty(chosen.target_unit)}`}.
+            {chosen.target_unit && ` in ${pretty(chosen.target_unit)}`}
+            {chosen.task === 'classification' && chosen.classes && `: ${chosen.classes.join(' or ')}`}.
           </p>
           <Panel key={chosen.model_id} card={chosen} />
           <About card={chosen} />

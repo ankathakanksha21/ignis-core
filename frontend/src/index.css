@@ -337,8 +337,42 @@ details[open] > summary {
   color: var(--text);
 }
 
+/* A problem, said plainly in the middle of the page. */
 [role='alert'] {
-  color: var(--warn);
+  width: fit-content;
+  max-width: 100%;
+  margin: 2rem auto;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warn) 9%, transparent);
+  text-align: center;
+}
+
+/* Shown while a page waits for the server. */
+.loading {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: center;
+  margin: 5rem 0;
+  color: var(--faint);
+}
+
+.loading::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1s ease-in-out infinite alternate;
+  content: '';
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
 }
 
 /* App shell: a floating pill, like a control bar. */

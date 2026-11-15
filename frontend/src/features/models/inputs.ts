@@ -19,7 +19,7 @@ const isFraction = (name: string) => name.endsWith('_mole_fraction')
 export const scale = (name: string) => (isFraction(name) ? 100 : 1)
 export const unit = (feature: { name: string; unit?: string | null }) => (isFraction(feature.name) ? '%' : (feature.unit ?? ''))
 export const shown = (name: string, value: number) => String(Number((value * scale(name)).toPrecision(4)))
-export const pretty = (text: string | null) => (text ?? '').replace('^2', '²')
+export const pretty = (text: string | null) => (text ?? '').replaceAll('^2', '²')
 
 export type Inputs = Record<string, string>
 
@@ -51,6 +51,11 @@ export const EXAMPLES: Record<string, { name: string; inputs: Inputs }[]> = {
     { name: 'Heptane in a Moon-base atmosphere', inputs: { fuel: 'heptane', o2_mole_fraction: '30', co2_mole_fraction: '0', he_mole_fraction: '0', pressure_kpa: '71.2', droplet_diameter_mm: '3' } },
     { name: 'Oxygen beyond what was tested', inputs: { fuel: 'heptane', o2_mole_fraction: '50', co2_mole_fraction: '0', he_mole_fraction: '0', pressure_kpa: '71.2', droplet_diameter_mm: '3' } },
     { name: 'Carbon dioxide and helium together', inputs: { fuel: 'heptane', o2_mole_fraction: '21', co2_mole_fraction: '20', he_mole_fraction: '20', pressure_kpa: '101.3', droplet_diameter_mm: '3' } },
+  ],
+  flex_extinction: [
+    { name: 'Heptane in air', inputs: { fuel: 'heptane', o2_mole_fraction: '21', co2_mole_fraction: '0', he_mole_fraction: '0', pressure_kpa: '101.3', droplet_diameter_mm: '3' } },
+    { name: 'Diluted with carbon dioxide', inputs: { fuel: 'heptane', o2_mole_fraction: '21', co2_mole_fraction: '30', he_mole_fraction: '0', pressure_kpa: '101.3', droplet_diameter_mm: '3' } },
+    { name: 'Methanol diluted with helium', inputs: { fuel: 'methanol', o2_mole_fraction: '21', co2_mole_fraction: '0', he_mole_fraction: '30', pressure_kpa: '101.3', droplet_diameter_mm: '3' } },
   ],
   cfig_hot_ignition: [
     { name: 'Butane at 23% oxygen', inputs: { fuel: 'butane', o2_mole_fraction: '23', pressure_kpa: '101.3', fuel_mole_fraction: '50', fuel_flow_mg_s: '1.6' } },

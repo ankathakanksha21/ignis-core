@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTitle } from '../../useTitle.ts'
 import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../../api/client.ts'
@@ -49,6 +50,7 @@ export function ComparePage() {
   const { data: points } = useApi<{ series: PointSeries[] }>(`/investigations/points?ids=${key}`)
   const [loaded, setLoaded] = useState<{ key: string; details: Detail[] } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  useTitle('Compare')
 
   useEffect(() => {
     let live = true
@@ -71,7 +73,7 @@ export function ComparePage() {
   }
 
   if (error) return <p role="alert">Could not load the comparison: {error}</p>
-  if (!listing || !setup) return <p>Loading…</p>
+  if (!listing || !setup) return <p className="loading">Loading…</p>
   const mission = setup.missions.find((m) => m.id === missionId) ?? setup.missions[0]
   const details = loaded?.key === key ? loaded.details : null
 

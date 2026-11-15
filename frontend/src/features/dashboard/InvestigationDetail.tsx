@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
+import { useTitle } from '../../useTitle.ts'
 import { useApi } from '../../api/useApi.ts'
 import { CONDITIONS, NOT_STATED, PILLAR_NAMES, gravity, range, testStat } from './format.ts'
 import type { Detail, Table } from './types.ts'
@@ -49,9 +50,17 @@ function Text({ title, text }: { title: string; text: string | null }) {
 export function InvestigationDetail() {
   const { psiId = '' } = useParams()
   const { data, error } = useApi<Detail>(`/investigations/${psiId}`)
+  useTitle(data?.name)
 
-  if (error) return <p role="alert">Could not load {psiId}: {error}</p>
-  if (!data) return <p>Loading…</p>
+  if (error) {
+    return (
+      <p role="alert">
+        {error.startsWith('404') ? `No experiment has the id ${psiId}.` : `Could not load ${psiId}: ${error}`}{' '}
+        <Link to="/dashboard">See all experiments</Link>
+      </p>
+    )
+  }
+  if (!data) return <p className="loading">Loading…</p>
   const tests = testStat(data)
 
   return (

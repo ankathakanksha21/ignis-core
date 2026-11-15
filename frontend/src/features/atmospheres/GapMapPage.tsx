@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTitle } from '../../useTitle.ts'
 import { Link } from 'react-router-dom'
 import { useApi } from '../../api/useApi.ts'
 import { GapGrid } from './GapGrid.tsx'
@@ -26,11 +27,12 @@ function suggestionText(s: Suggestion): string {
 export function GapMapPage() {
   const [habitatId, setHabitatId] = useState('moon')
   const [hover, setHover] = useState<string | null>(null)
+  useTitle('Gap map')
   const { data: habitats } = useApi<Habitat[]>('/atmospheres/habitats')
   const { data: map, error } = useApi<GapMap>(`/atmospheres/gaps?habitat=${habitatId}`)
 
   if (error) return <p role="alert">Could not load the gap map: {error}</p>
-  if (!habitats || !map) return <p>Loading…</p>
+  if (!habitats || !map) return <p className="loading">Loading…</p>
   const habitat = map.habitat
 
   return (

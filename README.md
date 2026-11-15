@@ -4,6 +4,16 @@ NASA Space Apps 2026. A dashboard that summarizes, ranks and interprets NASA's m
 
 It is a research and teaching aid, not a certified safety tool. Numbers come from code reading NASA tables, each value links to its source row, and nothing is predicted outside the conditions NASA tested.
 
+## What is in it
+
+| Page | What it does |
+| --- | --- |
+| Experiments | The 24 investigations: browse them, rank them for a mission, compare them, find similar tests, and see their uses on Earth. |
+| Habitats | The oxygen and pressure conditions NASA never tested, and the table cells that look wrong. |
+| Models | Predictions inside the tested range, shown with the nearest real tests. |
+| Lab | A simulated burning droplet beside the real tests, and plots of the real data. |
+| Ask | Questions answered from NASA's records, with a source on every sentence. |
+
 ## Who owns what
 
 | Path | What | Owner |
