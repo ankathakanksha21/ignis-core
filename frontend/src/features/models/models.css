@@ -1,0 +1,235 @@
+.models {
+  --line: color-mix(in srgb, currentColor 18%, transparent);
+  --quiet: color-mix(in srgb, currentColor 62%, transparent);
+  --meter-fill: #2a78d6;
+  --meter-track: #cde2fb;
+  --warn: #c2410c;
+}
+
+@media (prefers-color-scheme: dark) {
+  .models {
+    --meter-fill: #3987e5;
+    --meter-track: #0d366b;
+  }
+}
+
+.models .lede,
+.models .quiet,
+.models small {
+  color: var(--quiet);
+}
+
+.models .lede {
+  max-width: 46rem;
+}
+
+.models .quiet {
+  font-size: 0.85rem;
+}
+
+.model-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+
+.model-list button {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.model-list button.on {
+  border-color: currentColor;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.model-list button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.model-list span,
+.model-list em {
+  color: var(--quiet);
+  font-size: 0.85rem;
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.models h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.05rem;
+}
+
+.models h3 {
+  margin: 1.2rem 0 0.3rem;
+  font-size: 0.95rem;
+}
+
+.inputs,
+.result {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.inputs label {
+  display: grid;
+  grid-template-columns: 1fr 6rem 2.5rem;
+  gap: 0.2rem 0.5rem;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.inputs input,
+.inputs select {
+  min-width: 0;
+  font: inherit;
+}
+
+.inputs select {
+  grid-column: 2 / -1;
+}
+
+.inputs small {
+  grid-column: 1 / -1;
+  font-size: 0.78rem;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 0.8rem;
+}
+
+.examples button {
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.headline {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.headline strong {
+  font-size: 1.35rem;
+}
+
+.result .tag {
+  display: inline-block;
+  margin: 0 0 0.6rem;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--quiet);
+  font-size: 0.8rem;
+}
+
+.withheld {
+  padding: 0.5rem 0.8rem;
+  border-left: 4px solid var(--warn);
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
+}
+
+.withheld .headline strong {
+  font-size: 1.1rem;
+}
+
+.withheld ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.message {
+  color: var(--quiet);
+  font-size: 0.9rem;
+}
+
+.class-row {
+  display: grid;
+  grid-template-columns: 4rem 1fr 3rem;
+  gap: 0.6rem;
+  align-items: center;
+  max-width: 24rem;
+  margin-bottom: 0.3rem;
+}
+
+.models .meter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--meter-track);
+}
+
+.models .meter > div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--meter-fill);
+}
+
+.models .scroll {
+  overflow-x: auto;
+}
+
+.models table {
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.models th,
+.models td {
+  padding: 0.3rem 0.8rem 0.3rem 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.models th {
+  color: var(--quiet);
+  font-weight: 500;
+}
+
+.about {
+  margin-top: 1.2rem;
+  max-width: 52rem;
+  font-size: 0.9rem;
+}
+
+.about summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.about td {
+  white-space: normal;
+}
