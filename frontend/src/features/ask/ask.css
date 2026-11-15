@@ -1,0 +1,116 @@
+.ask {
+  --line: color-mix(in srgb, currentColor 18%, transparent);
+  --quiet: color-mix(in srgb, currentColor 62%, transparent);
+  max-width: 52rem;
+}
+
+.ask .lede,
+.ask .quiet {
+  color: var(--quiet);
+}
+
+.ask .quiet {
+  font-size: 0.85rem;
+}
+
+.ask form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ask form input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.ask button {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ask button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.examples button {
+  border-radius: 999px;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.answer {
+  margin: 1.5rem 0;
+  padding: 0.2rem 1rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.ask h2 {
+  font-size: 1.1rem;
+}
+
+.cite {
+  display: inline-block;
+  min-width: 1.3em;
+  margin-right: 0.15rem;
+  padding: 0 0.3em;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: inherit;
+  font-size: 0.75rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.not-covered {
+  padding: 0.5rem 0.8rem;
+  border-left: 4px solid currentColor;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.sources {
+  padding-left: 1.6rem;
+}
+
+.sources li {
+  margin-bottom: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-left: 3px solid transparent;
+  color: var(--quiet);
+  font-size: 0.9rem;
+}
+
+.sources li.used {
+  border-left-color: currentColor;
+  color: inherit;
+}
+
+.sources li.lit,
+.sources li:target {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.sources p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.sources small {
+  color: var(--quiet);
+}
