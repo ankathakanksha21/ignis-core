@@ -68,3 +68,14 @@ def test_chart_points_place_only_rows_whose_oxygen_and_pressure_pair_is_certain(
     cfig = client.get("/api/investigations/points?ids=PSI-159").json()["series"][0]
     assert cfig["rows_burner_fed"] == 154 and all(point["o2"] <= 0.4 for point in cfig["points"])
     assert client.get("/api/investigations/points?ids=PSI-108").status_code == 404
+
+
+def test_lab_explorer_rows_are_the_published_flex_values():
+    body = client.get("/api/lab/flex").json()
+    rows = {row["row"]: row for row in body["rows"]}
+    assert len(rows) == 274 and body["source"]["psi_id"] == "PSI-69"
+    first = rows[2]  # FLEX test 1: methanol in air, burning rate 0.52, ended in disruption
+    assert (first["fuel"], first["o2_percent"], first["burning_rate"], first["test_end"]) == ("Methanol", 21.0, 0.52, "Disruption")
+    assert first["pressure_kpa"] == 101.018 and not first["flagged"]
+    assert rows[115]["flagged"] and rows[115]["pressure_kpa"] is None  # the test recorded at 0 mmHg
+    assert sum(row["burning_rate"] is None for row in rows.values()) == 16  # blank in the table, never filled in
