@@ -44,9 +44,10 @@ export function SimilarPage() {
 
   return (
     <section className="dashboard similar">
+      <p className="eyebrow">Across every investigation</p>
       <h1>Find similar tests</h1>
       <DashboardNav />
-      <p className="lede">Enter conditions and see the real NASA test rows closest to them, across every investigation. Leave a box empty to ignore it.</p>
+      <p className="lede">The real NASA test rows closest to your conditions. Leave a box empty to ignore it.</p>
 
       {setup && (
         <p className="filter">
@@ -78,7 +79,7 @@ export function SimilarPage() {
 
       {error && <p role="alert">Could not search: {error}</p>}
       {found?.nothing_close && (
-        <p className="gap-warning">
+        <p className="note">
           No real test is close to these conditions. The nearest rows are below, so you can see how far away they are.
         </p>
       )}

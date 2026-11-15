@@ -65,8 +65,7 @@ export function Explorer() {
   return (
     <>
       <p className="lede">
-        Every point is one real FLEX test, <strong>measured by NASA</strong>. Nothing here is simulated. Pick what to plot and look for
-        patterns.
+        Every point is one real FLEX test, <strong>measured by NASA</strong>. Nothing here is simulated.
       </p>
       <p className="pickers">
         {picker(xKey, setX, 'Across')}

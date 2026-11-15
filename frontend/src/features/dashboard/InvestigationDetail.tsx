@@ -1,7 +1,9 @@
 import { Link, useParams } from 'react-router-dom'
 import { useApi } from '../../api/useApi.ts'
-import { CONDITIONS, NOT_STATED, PILLAR_NAMES, gravity, range, testCount } from './format.ts'
+import { CONDITIONS, NOT_STATED, PILLAR_NAMES, gravity, range, testStat } from './format.ts'
 import type { Detail, Table } from './types.ts'
+
+const HEADLINE = CONDITIONS.filter((c) => ['o2_mole_fraction', 'pressure_kpa'].includes(c.field))
 
 function Conditions({ table }: { table: Table }) {
   return (
@@ -50,30 +52,48 @@ export function InvestigationDetail() {
 
   if (error) return <p role="alert">Could not load {psiId}: {error}</p>
   if (!data) return <p>Loading…</p>
+  const tests = testStat(data)
 
   return (
     <section className={`detail pillar-${data.pillar}`}>
-      <p>
+      <p className="back">
         <Link to="/dashboard">← All investigations</Link>
+      </p>
+      <p className="eyebrow">
+        {PILLAR_NAMES[data.pillar]} · {data.psi_id}
       </p>
       <h1>{data.name}</h1>
       {data.title !== data.name && <p className="lede">{data.title}</p>}
       <p className="tags">
-        <span>{PILLAR_NAMES[data.pillar]}</span>
         <span>{data.fuel_class ?? 'no fuel class'}</span>
         <span>{gravity(data)}</span>
-        <span>{testCount(data)}</span>
       </p>
-      <p>
-        <strong>{PILLAR_NAMES[data.pillar]}.</strong> {data.pillar_why} <small>(this project's grouping)</small>
+      <dl className="stats tiles">
+        <div>
+          <dd>{tests.value}</dd>
+          <dt>{tests.label}</dt>
+        </div>
+        {HEADLINE.map((c) => (
+          <div key={c.field}>
+            <dd className={data.conditions[c.field] ? '' : 'missing'}>{range(data.conditions[c.field], c.scale, c.unit)}</dd>
+            <dt>{c.label.toLowerCase()}</dt>
+          </div>
+        ))}
+        <div>
+          <dd>{data.flag_count}</dd>
+          <dt>flagged cells</dt>
+        </div>
+      </dl>
+      <p className="quiet">
+        Grouped under {PILLAR_NAMES[data.pillar]} by this project. {data.pillar_why}
+        {data.brief_note && ` From the challenge brief: ${data.brief_note}`}
       </p>
-      {data.brief_note && <p>From the challenge brief: {data.brief_note}</p>}
 
       {data.ai_summary && (
         <section className="ai-summary">
-          <h2>
+          <p>
             <span className="ai-tag">AI summary</span>
-          </h2>
+          </p>
           <p>{data.ai_summary.summary}</p>
           {data.ai_summary.measurements.length > 0 && (
             <>
@@ -88,8 +108,8 @@ export function InvestigationDetail() {
             </>
           )}
           <p className="quiet">
-            Written by {data.ai_model} from the NASA record and test table of {data.psi_id} only. Code checked that every number
-            and every quote is in that material. It can still be wrong, so check it against the record below.
+            Written by {data.ai_model} from this record and its test table only. Code checked every number and quote against
+            them. It can still be wrong, so check it against the record below.
           </p>
         </section>
       )}
@@ -157,16 +177,26 @@ export function InvestigationDetail() {
                 .join(', ')}
             </p>
             {Object.keys(table.fields).length > 0 ? (
+              <div className="scroll">
               <Conditions table={table} />
+            </div>
             ) : (
               <p className="missing">This table states no oxygen, pressure or flow.</p>
             )}
-            <h3>What varied between tests</h3>
-            <p>
-              {varied.length
-                ? varied.map((column) => `${column.name} (${column.distinct} values)`).join(', ')
-                : 'Nothing varied.'}
-            </p>
+            <h3>
+              What varied between tests <small>and how many values each took</small>
+            </h3>
+            {varied.length ? (
+              <p className="tags varied">
+                {varied.map((column) => (
+                  <span key={column.name} title={`${column.distinct} different values`}>
+                    {column.name.trim()} <b>{column.distinct}</b>
+                  </span>
+                ))}
+              </p>
+            ) : (
+              <p>Nothing varied.</p>
+            )}
             {fixed.length > 0 && <p className="quiet">Same in every row: {fixed.map((column) => column.name).join(', ')}</p>}
           </section>
         )
@@ -176,6 +206,7 @@ export function InvestigationDetail() {
         <section>
           <h2>Flagged cells</h2>
           <p className="quiet">Checks are this project's, not NASA's. The raw data is unchanged.</p>
+          <div className="scroll">
           <table>
             <thead>
               <tr>
@@ -196,6 +227,7 @@ export function InvestigationDetail() {
               ))}
             </tbody>
           </table>
+          </div>
         </section>
       )}
 

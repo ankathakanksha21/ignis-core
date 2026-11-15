@@ -18,12 +18,10 @@ export function EarthPage() {
 
   return (
     <section className="dashboard earth">
+      <p className="eyebrow">Earth applications</p>
       <h1>On Earth</h1>
       <DashboardNav />
-      <p className="lede">
-        What the research is for on the ground. Every line in quotation marks is NASA's own text, with a link to where NASA
-        says it.
-      </p>
+      <p className="lede">What the research is for on the ground, in NASA's own words. Each quote links to where NASA says it.</p>
       {error && <p role="alert">Could not load the Earth uses: {error}</p>}
       {!data && !error && <p>Loading…</p>}
 

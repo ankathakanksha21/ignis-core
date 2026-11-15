@@ -40,6 +40,16 @@ export function testCount(card: Card): string {
   return 'no test table'
 }
 
+/** The test count as a number and a short label. */
+export function testStat(card: Card): { value: string; label: string } {
+  if (card.summary_rows) {
+    return card.tests_counted > card.test_rows
+      ? { value: String(card.tests_counted), label: `tests in ${card.summary_rows} summary rows` }
+      : { value: String(card.summary_rows), label: 'summary rows' }
+  }
+  return card.test_rows ? { value: String(card.test_rows), label: 'tests' } : { value: 'none', label: 'no test table' }
+}
+
 export function gravity(card: Card): string {
   if (card.gravity_g === 0) return 'microgravity'
   return card.project_type === 'Ground Investigation' ? 'ground study' : NOT_STATED

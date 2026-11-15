@@ -77,9 +77,9 @@ export function ComparePage() {
 
   return (
     <section className="dashboard compare">
+      <p className="eyebrow">Side by side</p>
       <h1>Compare investigations</h1>
       <DashboardNav />
-      <p className="lede">Two or three investigations side by side, and where their tests sit against a habitat's atmosphere.</p>
 
       <p className="pickers">
         {[0, 1, 2].map((slot) => (

@@ -17,14 +17,10 @@ export function InvestigationList() {
 
   return (
     <section className="dashboard">
-      <h1>Combustion investigations</h1>
+      <p className="eyebrow">NASA PSI · {data.investigations.length} investigations</p>
+      <h1>Fire in microgravity</h1>
       <DashboardNav />
-      <p className="lede">
-        {data.investigations.length} investigations from NASA's PSI repository, grouped by fire safety pillar. The grouping is this
-        project's, not NASA's. Open one to see where each value comes from.
-      </p>
       <p className="filter">
-        Fuel class:{' '}
         {classes.map((name) => (
           <button key={name} className={name === fuelClass ? 'on' : ''} onClick={() => setFuelClass(name)}>
             {name}
@@ -40,7 +36,7 @@ export function InvestigationList() {
             <h2>
               {PILLAR_NAMES[pillar.id] ?? pillar.id} <small>{cards.length}</small>
             </h2>
-            <p>{pillar.description}</p>
+            <p className="quiet">{pillar.description}</p>
             <div className="cards">
               {cards.map((card) => (
                 <InvestigationCard key={card.psi_id} card={card} />
@@ -50,8 +46,8 @@ export function InvestigationList() {
         )
       })}
 
-      <p className="left-out">
-        Left out of the PSI search results:{' '}
+      <p className="quiet left-out">
+        The pillar grouping is this project's, not NASA's. Left out of the PSI search results:{' '}
         {data.left_out.map((item) => `${item.title} (${item.psi_id}). ${item.reason}`).join(' ')}
       </p>
     </section>

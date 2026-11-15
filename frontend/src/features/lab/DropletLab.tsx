@@ -59,6 +59,7 @@ function Variants({ settings }: { settings: Settings }) {
 
   if (found?.request !== request) return null
   return (
+    <div className="scroll">
     <table className="variants">
       <thead>
         <tr>
@@ -90,6 +91,7 @@ function Variants({ settings }: { settings: Settings }) {
         })}
       </tbody>
     </table>
+    </div>
   )
 }
 
@@ -120,8 +122,8 @@ export function DropletLab() {
   return (
     <>
       <p className="lede">
-        One fuel droplet burning in still gas in microgravity. Everything in the left and middle panels is <strong>simulated</strong> by
-        a simplified model fitted to NASA's FLEX tests. The table underneath is <strong>measured</strong>.
+        One fuel droplet burning in microgravity. The panels are <strong>simulated</strong> from NASA's FLEX tests. The table under them
+        is <strong>measured</strong>.
       </p>
       <p className="filter">
         {PRESETS.map((preset) => (
