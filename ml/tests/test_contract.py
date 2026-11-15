@@ -23,7 +23,7 @@ def test_every_model_has_a_card():
 
 
 def test_placeholders_answer_not_implemented():
-    request = PredictRequest(model_id="flex_extinction", inputs={"o2_mole_fraction": 0.21})
+    request = PredictRequest(model_id="cfig_cool_flame", inputs={"o2_mole_fraction": 0.21})
     assert api.predict(request).status == "not_implemented"
     sim = SimulateRequest(scenario="solid", fuel="pmma", gravity_g=0, pressure_kpa=101.3, o2_mole_fraction=0.21)
     assert api.simulate(sim).status == "not_implemented"

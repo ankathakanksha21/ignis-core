@@ -155,3 +155,33 @@ def test_training_is_deterministic():
     first = ask().prediction
     flex_burning_rate.fitted.cache_clear()
     assert ask().prediction == first
+
+
+def test_each_fuel_has_its_own_range_and_heptane_is_wider():
+    fit = flex_burning_rate.fitted()
+    widths = {fuel: high - low for fuel, (low, high) in fit.ranges.items()}
+    assert widths["heptane"] > widths["methanol"]
+    for fuel, changes in (("methanol", {}), ("heptane", {"fuel": "heptane"})):
+        prediction = ask(**changes).prediction
+        assert prediction.high - prediction.low == pytest.approx(widths[fuel], abs=1e-3)
+    # The range is built to hold about 80 percent of each fuel's cross-validated errors.
+    residuals = fit.by_condition[fit.served].residuals
+    for fuel, (low, high) in fit.ranges.items():
+        errors = residuals[(fit.train["fuel"] == fuel).to_numpy()]
+        assert ((errors >= low) & (errors <= high)).mean() == pytest.approx(0.80, abs=0.03)
+    assert "heptane" in card_notes() and "methanol" in card_notes()
+
+
+def card_notes():
+    return next(card for card in api.model_cards() if card.model_id == "flex_burning_rate").notes
+
+
+def test_the_why_line_adds_up_to_the_prediction_exactly():
+    fit = flex_burning_rate.fitted()
+    for changes in ({}, {"fuel": "heptane", "o2_mole_fraction": 0.30, "pressure_kpa": 70.5}, {"he_mole_fraction": 0.3}):
+        response = ask(**changes)
+        average, moved = flex_burning_rate.contributions(fit, {**IN_RANGE, **changes})
+        assert average + sum(moved.values()) == pytest.approx(response.prediction.value, abs=1e-4)
+        assert "Why: starting from the average FLEX test" in response.message
+    assert "oxygen +" in ask(o2_mole_fraction=0.30).message
+    assert "no helium" in ask().message and "no helium" not in ask(he_mole_fraction=0.3).message
