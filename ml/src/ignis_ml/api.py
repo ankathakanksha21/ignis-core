@@ -17,6 +17,7 @@ from .contract import (
     SimulateRequest,
     SimulateResponse,
 )
+from .models import flex_burning_rate
 
 _PLANNED: dict[ModelId, dict] = {
     "flex_burning_rate": dict(
@@ -38,16 +39,24 @@ _PLANNED: dict[ModelId, dict] = {
 }  # fmt: skip
 
 
+# Models that are built. Anything in ModelId but not here answers not_implemented.
+_BUILT = {flex_burning_rate.MODEL_ID: flex_burning_rate}
+
+
 def model_cards() -> list[ModelCard]:
     """Every model the app knows about, built or not, with its tested ranges."""
     return [
-        ModelCard(model_id=model_id, status="not_implemented", **_PLANNED[model_id])
+        _BUILT[model_id].card()
+        if model_id in _BUILT
+        else ModelCard(model_id=model_id, status="not_implemented", **_PLANNED[model_id])
         for model_id in get_args(ModelId)
     ]
 
 
 def predict(request: PredictRequest) -> PredictResponse:
     """Predict from measured-data models. Withholds outside the tested range."""
+    if request.model_id in _BUILT:
+        return _BUILT[request.model_id].predict(request)
     return PredictResponse(
         status="not_implemented",
         model_id=request.model_id,
