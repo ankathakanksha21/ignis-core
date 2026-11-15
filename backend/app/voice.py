@@ -33,7 +33,7 @@ from ignis_ml.contract import PredictRequest, SimulateRequest
 from . import catalog, conditions, earth, gaps, llm, quality, ranking, store, summaries
 
 ELEVENLABS = "https://api.elevenlabs.io/v1/convai"
-MAX_FACT_CHARS = 6000  # what is handed to the agent; the page shows the same list
+MAX_FACT_CHARS = 6000  # the page's own facts handed to the agent; the guide and background lines are added after
 _NUMBER = re.compile(r"\d+(?:\.\d+)?")
 
 SCRIPT_SYSTEM = """\
@@ -68,12 +68,13 @@ RULES
 - Answer in one to three short sentences, in plain spoken words.
 - Use only the facts above. Copy any number exactly as it appears there. Never calculate, round or estimate a number.
 - Write every number in digits, such as 274 and 34%, never in words. The page checks your digits against the facts.
+- If asked how to read or use this page, or what a colour, border, number or button means, explain it step by step from the lines that begin "How to read this page". If asked what the app does or where to find something, answer from the line that begins "About this app" and name the section to open. That is a full answer: do not add that it is not in the data.
 - If the facts do not answer the question, say "That is not in the data on this page" and suggest the Ask page, which searches all the records.
 - A prediction or a simulation is never a measurement. Say which it is.
 - NASA has no combustion tests in partial gravity, so Moon and Mars gravity are always untested.
 - Never say that something is safe.
 - The listener may cut in at any moment. When they do, drop what you were saying and answer what they asked. Never go back to finish the explanation unless they ask you to.
-- If they only say stop, wait, or that they have a question, reply with just "Go ahead." and listen."""
+- If they only say stop, wait, or that they have a question, reply with just "Go ahead." and listen. Say "Go ahead." at no other time, and never before an answer."""
 
 NOT_COVERED = "That is not in the data on this page. The Ask page searches all the records."
 
@@ -105,6 +106,91 @@ BACKGROUND_FOR = {
     "similar": ("oxygen",), "pattern": ("correlation", "burning_rate"), "quality": ("flags",),
     "earth": ("microgravity",), "overview": ("microgravity", "oxygen"),
 }  # fmt: skip
+
+ABOUT_APP = (
+    "About this app: Flame in Freefall is a research and teaching aid, not a certified safety tool. It has five sections. "
+    "Experiments lists NASA's microgravity combustion investigations, ranks them for a mission, compares them, finds "
+    "similar tests and quotes their uses on Earth. Habitats maps the oxygen and pressure conditions NASA never tested "
+    "and lists table cells that look wrong. Models predicts inside the range NASA tested and refuses outside it. Lab "
+    "simulates a burning droplet and plots the real tests. Ask answers questions from NASA's records with a source on "
+    "every sentence."
+)
+
+# How each page is read and used, so the guide can explain the software and not only the data.
+HOW_TO_READ = {
+    "overview": [
+        "Experiments are shown as cards, grouped by pillar. The buttons above the cards filter them by fuel class.",
+        "Each card gives the number of tests and the oxygen range. Click a card to open that experiment's page. The tabs above lead to Rank, Compare, Similar and On Earth.",
+    ],
+    "investigation": [
+        "The tiles at the top give the number of tests, the oxygen range, the pressure range and the number of flagged cells.",
+        "The AI summary is written by a language model from this record alone, and code checks its numbers. The table below lists each condition, how many rows state it, and the table column it was read from.",
+        "Flagged cells lists the values that look wrong. The record's own text and its publications are further down.",
+    ],
+    "rank": [
+        "Pick a mission with the buttons. Open Change the habitat to set your own oxygen, pressure and gravity, to add a flow, or to show one fuel class only.",
+        "Click a row to open it. It shows each part of the score with a bar, and the table row and column the value came from.",
+        "Compare the top 3 and Find similar tests carry the same settings to those pages. The settings are kept when you come back.",
+    ],
+    "compare": [
+        "Pick two or three experiments with the menus at the top. Each row of the table is one property, with one column for each experiment.",
+        "A row marked same has the same value in every column. Not stated means the record does not say.",
+        "The chart below the table places each experiment's tests on oxygen against pressure, with the chosen habitat marked.",
+    ],
+    "similar": [
+        "Type any of oxygen, pressure and flow, or fill them from a mission. Leave a box empty to ignore it.",
+        "Closeness is 100 for an exact match and falls to 0 one tolerance away. Rows that state everything you asked for come first.",
+        "Each row number is a link that opens that exact test row as NASA published it.",
+    ],
+    "prediction": [
+        "Pick a model, then type the conditions or press an example. Under each box is the range NASA tested.",
+        "Outside that range the model gives no answer and shows which input is outside. Inside it, the result comes with a likely range.",
+        "Below the result are the nearest real tests, with their cells shown as NASA published them. How this model was built and scored opens the model's own record.",
+    ],
+    "lab": [
+        "Move the sliders to change the air around the droplet. Each slider covers only the range NASA tested.",
+        "The drawing and the curve show the droplet shrinking over time. Only the droplet's size is simulated. The flame in the drawing is illustration.",
+        "One change at a time compares the same droplet with one setting moved. The nearest real tests are listed below it.",
+    ],
+    "pattern": [
+        "Choose what runs across, what runs up, and what the points are coloured by. Each point is one real test.",
+        "A hollow mark is a row with a flagged cell. Point at a mark to see which test it is.",
+    ],
+    "quality": [
+        "The first table counts each kind of problem and says what it means. The second lists every flagged cell with its row, its column and why it was flagged.",
+        "The buttons above the second table filter it by investigation and by check. Nothing here changes NASA's data.",
+    ],
+    "earth": [
+        "Each card is one theme. Inside it are quotes copied from NASA's records, and the names under a quote open the experiments it comes from.",
+        "A card scrolls when it holds more quotes than fit. The second group of cards lists products from NASA's wider fire-safety work.",
+    ],
+}
+
+
+def how_to_read(kind: str, params: dict) -> list[str]:
+    lines = list(HOW_TO_READ.get(kind, []))
+    if kind == "gaps":
+        habitat = gaps.HABITATS[str(params["habitat"])]
+        oxygen, pressure = _percent(habitat["o2_mole_fraction"]), f"{habitat['pressure_kpa']} kPa"
+        lines += [
+            "There is one grid for each fuel class. Oxygen runs across and pressure runs up. The bottom row, not stated, holds tests whose table gives no pressure.",
+            "The fill of a cell says whether NASA tested there. A dark empty cell is untested. A blue cell is tested, and the number in it is how many tests.",
+            "An orange border is a separate mark and does not mean untested. It marks the conditions this habitat could have. "
+            f"The thick orange ring is the one cell that holds the habitat's own {oxygen} oxygen and {pressure}.",
+        ]
+        if habitat["open_ended"]:
+            lines.append(
+                f"This habitat is given as bounds: {oxygen} oxygen or more, and {pressure} or less. So every cell at or to the "
+                "right of that oxygen column and at or below that pressure row has a thin orange border. A dark cell with an "
+                "orange border is the gap that matters most: it is untested and the habitat could be there. A dark cell with no "
+                "border is untested too, but its pressure is too high or its oxygen too low for this habitat, so it matters less here."
+            )
+        else:
+            lines.append("This habitat is a single point and not a range, so only one cell has a ring and no cell has a thin orange border.")
+        lines.append("A dashed cell with a small number is one of the suggested experiments, numbered as in the list below the grids. "
+                     "Click any cell to get links that open the test rows it counts.")  # fmt: skip
+    return [f"How to read this page: {line}" for line in lines]
+
 
 # Questions offered as buttons, so a newcomer knows what is worth asking. Each can be answered from the page's facts.
 QUESTIONS = {
@@ -539,7 +625,8 @@ def _brief(kind: str, params_json: str, level: str = "student") -> dict:
         facts = facts[:-1]
     # Kept apart from the facts on the page, so general science is never mistaken for a NASA measurement.
     background = [BACKGROUND[name] for name in BACKGROUND_FOR.get(kind, ())]
-    facts = facts + [f"Background, general science and not from NASA's tables: {line}" for line in background]
+    facts = (facts + how_to_read(kind, json.loads(params_json)) + [ABOUT_APP]
+             + [f"Background, general science and not from NASA's tables: {line}" for line in background])  # fmt: skip
     messages = [{"role": "system", "content": f"{SCRIPT_SYSTEM}\n\n{AUDIENCES[level]}"},
                 {"role": "user", "content": f"THE PAGE: {title}\n\nFACTS\n" + "\n".join(f"- {line}" for line in facts)}]  # fmt: skip
     written, why = None, ""
@@ -561,7 +648,7 @@ def _brief(kind: str, params_json: str, level: str = "student") -> dict:
         **(written or plain_script(title, facts)),
         "written_by": "model" if written else "code",
         "fallback_reason": None if written else why,
-        "questions": QUESTIONS.get(kind, []),
+        "questions": [*QUESTIONS.get(kind, []), "How do I read this page?"],
         "audience": AUDIENCES[level],
     }
 

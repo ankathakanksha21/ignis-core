@@ -125,7 +125,7 @@ def test_the_other_pages_have_facts_background_and_questions_to_ask():
     assert "NASA says" in explain("earth")["title"] and any("Theme, " in line for line in explain("earth")["facts"])
     overview = explain("overview")
     assert overview["facts"][0].endswith(": 24") and any("SPICE ran 469 tests" in line for line in overview["facts"])
-    assert len(overview["questions"]) == 3
+    assert len(overview["questions"]) == 4 and overview["questions"][-1] == "How do I read this page?"
     # Background is general science, so it is labelled and carries no measured value.
     background = [line for line in overview["facts"] if line.startswith("Background, general science")]
     assert background and not any(NUMBER.search(line.replace("-1 to 1", "")) for line in background)
@@ -144,3 +144,16 @@ def test_dashes_are_taken_out_of_what_is_read_aloud():
     facts = ["Oxygen in the atmosphere: 12 to 34 %"]
     answer = {"script": "Oxygen ran 12–34 percent overall—a wide range.", "highlights": ["12 – 34 percent"]}
     assert voice.check_script(answer, facts)[0] == {"script": "Oxygen ran 12 to 34 percent overall, a wide range.", "highlights": ["12 to 34 percent"]}
+
+
+def test_the_guide_can_explain_how_the_page_is_read():
+    moon = " ".join(line for line in explain("gaps", habitat="moon")["facts"] if line.startswith("How to read this page"))
+    assert "An orange border is a separate mark and does not mean untested" in moon
+    assert "30% oxygen or more, and 70.3 kPa or less" in moon and "thin orange border" in moon
+    assert "its pressure is too high or its oxygen too low for this habitat" in moon
+    station = " ".join(explain("gaps", habitat="station")["facts"])
+    assert "single point and not a range" in station and "or more, and" not in station
+    for kind, params in [("rank", {"mission": "moon"}), ("compare", {"ids": "PSI-69,PSI-25"}), ("quality", {})]:
+        facts = explain(kind, **params)["facts"]
+        assert any(line.startswith("How to read this page") for line in facts) and any(line.startswith("About this app") for line in facts)
+    assert "How to read this page" in voice.AGENT_PROMPT and "About this app" in voice.AGENT_PROMPT

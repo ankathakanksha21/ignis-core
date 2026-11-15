@@ -8,10 +8,10 @@ import {
   useConversationStatus,
 } from '@elevenlabs/react'
 import { api } from '../../api/client.ts'
-import icon from '../../assets/voice-guide.webp'
 import { useLevel } from './level.ts'
 import { LevelToggle } from './LevelToggle.tsx'
 import type { VoiceKind } from './VoiceGuide.tsx'
+import { VoiceOrb } from './VoiceOrb.tsx'
 
 // Shape returned by /api/voice/explain (backend/app/voice.py).
 type Brief = {
@@ -48,17 +48,10 @@ function Chips({ questions, onPick, disabled }: { questions: string[]; onPick: (
   )
 }
 
-function Orb({ state }: { state: 'idle' | 'speaking' | 'listening' }) {
-  return (
-    <span className={`voice-orb ${state}`}>
-      <img src={icon} alt="" width={56} height={56} />
-    </span>
-  )
-}
-
 /** The ElevenLabs conversation: it speaks the script first, and the listener can cut in at any point. */
 function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; onFail: (why: string) => void; onAsk: (text: string) => void }) {
-  const { startSession, endSession, sendUserMessage, sendUserActivity } = useConversationControls()
+  const { startSession, endSession, sendUserMessage, sendUserActivity, getInputByteFrequencyData, getOutputByteFrequencyData } =
+    useConversationControls()
   const { status } = useConversationStatus()
   const { isSpeaking } = useConversationMode()
   const { isMuted, setMuted } = useConversationInput()
@@ -112,7 +105,11 @@ function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; on
   return (
     <>
       <div className="voice-status">
-        <Orb state={!connected ? 'idle' : isSpeaking ? 'speaking' : 'listening'} />
+        {/* The ring follows the guide's voice while it speaks, and the microphone while it listens. */}
+        <VoiceOrb
+          state={!connected ? 'idle' : isSpeaking ? 'speaking' : 'listening'}
+          read={isSpeaking ? getOutputByteFrequencyData : isMuted ? undefined : getInputByteFrequencyData}
+        />
         <p aria-live="polite">
           {!connected ? 'Connecting…' : isSpeaking ? 'Speaking. Talk over it, or press Interrupt.' : isMuted ? 'Microphone off. Type a question below.' : 'Listening. Ask a question.'}
         </p>
@@ -205,7 +202,7 @@ function Read({ brief, note, onAsk }: { brief: Brief; note: string | null; onAsk
   return (
     <>
       <div className="voice-status">
-        <Orb state={speaking ? 'speaking' : 'idle'} />
+        <VoiceOrb state={busy ? 'listening' : speaking ? 'speaking' : 'idle'} />
         <p aria-live="polite">
           {busy ? 'Finding the answer…' : !able ? 'This browser cannot read aloud. The text is below.' : speaking ? 'Reading aloud. Press Interrupt to ask something.' : 'Ask a question below.'}
         </p>
