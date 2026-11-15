@@ -9,7 +9,7 @@ To start a session: open it on `ankathakanksha21/ignis-core` and say "Read docs/
 - The project is "Flame in Freefall", a NASA Space Apps 2026 dashboard over NASA's microgravity combustion experiments (the PSI repository).
 - Two people build it. @ankathakanksha21 builds the dashboard (features 6.1, 6.2, 6.4, 6.5 and data ingest). You build 6.3: the predictive models and a simplified physics engine.
 - Your work is a standalone Python package, `ml/` (`ignis_ml`). It needs no backend, frontend, Node or API key.
-- The rest of the app calls three functions in `ml/src/ignis_ml/api.py`. `flex_burning_rate`, `cfig_hot_ignition` and the droplet scenario of `simulate()` are real on `main`. The solid matcher, `solid_flame_spread`, is built on branch `feat/6.3-solid-matcher`. `flex_extinction`, `cfig_cool_flame` and the solid scenario still answer `not_implemented`, which is a valid response the dashboard already handles.
+- The rest of the app calls three functions in `ml/src/ignis_ml/api.py`. `flex_burning_rate`, `cfig_hot_ignition`, `solid_flame_spread` and the droplet scenario of `simulate()` are real on `main`. `flex_extinction` is built on branch `feat/6.3-flex-extinction`. `cfig_cool_flame` and the solid scenario still answer `not_implemented`, which is a valid response the dashboard already handles.
 - The plan is one model per fuel class (droplet, gas, solid), as the problem statement says.
 - The data is already in the repository at `data/raw/`. Nothing to download.
 - Ingest has landed. `data/processed/quality_flags.csv` lists the suspicious cells, and the models leave flagged rows out of training. `data/processed/rows.csv` marks each raw row as `test`, `summary` or `other`.
@@ -54,13 +54,13 @@ One short branch per line, each merged by pull request before the next starts.
 | 1 | `feat/6.3-flex-burning-rate` | droplet | Regression of droplet burning rate on FLEX (PSI-69), plus the shared pieces. | Merged. |
 | 2 | `feat/6.3-physics-d2` | droplet | `simulate()` for the droplet scenario using the d² law, calibrated on FLEX. | Merged. The combustion lab (6.4) can call it. |
 | 3 | `feat/6.3-cfig-ignition` | gas | Classification of hot ignition (yes or no) on the CFI-G Normal Flames table only (PSI-159, 179 tests, label filled in every row). | Merged, with its contract change. |
-| 4 | `feat/6.3-solid-matcher` | solid | Nearest real tests for a solid-fuel query over BASS-II (PSI-25, 129 tests) and Saffire (PSI-98, -99, -100, 13 tests). A matcher, not a trained model. It reuses `nearest.py`. | Built, pull request not opened yet. |
+| 4 | `feat/6.3-solid-matcher` | solid | Nearest real tests for a solid-fuel query over BASS-II (PSI-25, 129 tests) and Saffire (PSI-98, -99, -100, 13 tests). A matcher, not a trained model. It reuses `nearest.py`. | Merged. |
+| 5 | `feat/6.3-flex-extinction` | droplet | Classification of whether a droplet flame puts itself out, on FLEX. Added after the first four because it is the result closest to the exploration-atmosphere question. | Built, pull request not opened yet. |
 
 ### Left out on purpose
 
 These cards stay `not_implemented`. They are picked up only if time remains.
 
-- `flex_extinction` (test end classifier): a second droplet model, and the plan is one per fuel class. It is the cheapest to add later because features, range check and nearest tests already exist.
 - Solid physics (flammability boundary with quenching and blowoff): BASS-II has no outcome column and Saffire has 13 tests, so there is nothing to calibrate it on. `simulate()` answers `not_implemented` for the solid scenario.
 - The CFI-G Inverse Flames table: its labels need normalising and its oxygen and fuel columns are swapped relative to the Normal table.
 - A cool-flame classifier: only 8 of 179 rows carry a label, so it cannot be trained. `cfig_cool_flame` stays `not_implemented` with the label count in its card.
@@ -158,4 +158,12 @@ How step 4 turned out, in `ml/src/ignis_ml/models/solid_flame_spread.py`: inputs
 - A material family is taken only from a word in the cell. The 45 BASS-II tests whose cell says only "rod" are filed under `rod`, not `pmma`, because the table does not name the rod material.
 - Airflow is not an input. BASS-II records fan settings, not a speed.
 
-What is left is the "Left out on purpose" list in section 4, cheapest first: the `flex_extinction` classifier.
+How step 5 turned out, in `ml/src/ignis_ml/models/flex_extinction.py`: the target is yes or no, where yes is the table's Extinction ending (the flame went out by itself with fuel left) and no groups Completion and Disruption. Telling those two apart scored at the baseline, so the model does not try. 259 tests are used. Logistic regression serves: accuracy 0.83 against 0.68 for the majority class, grouped by test condition, and 0.81 grouped by test date. The card also states what FLEX measured near 0.7 atm: 46 of 51 flames put themselves out at 21% oxygen or less, and 0 of 16 at 30% or more.
+
+Two refinements to `flex_burning_rate` went in with it. The low-high range is now per fuel, because one shared range held 89% of methanol's errors and only 67% of heptane's. Each answer's `message` also carries a "Why" line: how far each input moves the answer from the average FLEX test, which is exact for the linear model.
+
+Tried and not adopted: other model families for burning rate. Repeats of one FLEX condition differ from their own average by 0.045 mm²/s, and the model's error is 0.048, so it is already at the noise in the data.
+
+Data from outside PSI, on branch `feat/6.3-outside-check`: no ready-made dataset exists, but NASA/TM-2003-212553 tabulates 53 heptane droplet tests from a 1997 Spacelab experiment. They are copied into `ml/data/external/` (every row checked against the PDF text, see the README there) and read by `ml/src/ignis_ml/outside.py`. They are not training data: pooled with FLEX they made held-out FLEX error worse (0.048 to 0.056 mm²/s), because the two experiments used different hardware. They are used as an outside check in the `flex_burning_rate` card. Of 50 usable tests, 41 fall outside the FLEX range and would be withheld. On the 9 the model would answer the error is 0.24 mm²/s (median 0.12): 0.06 on the 4 DCE tests and 0.39 on the 5 FSDC tests. Citations and `trained_on` still point only at PSI, so no contract change was needed.
+
+What is left is the "Left out on purpose" list in section 4.
