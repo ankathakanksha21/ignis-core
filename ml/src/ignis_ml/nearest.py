@@ -17,30 +17,26 @@ import pandas as pd
 from .contract import TestRef
 
 
-def nearest_tests(
+def rank_tests(
     pool: pd.DataFrame,
-    raw: pd.DataFrame,
     query: Mapping[str, float | str],
     scales: Mapping[str, float],
-    n: int,
-    value_columns: Sequence[str],
     match: Sequence[str] = (),
-    doi: str | None = None,
-) -> list[TestRef]:
-    """`pool` is a typed feature table with the key columns; `raw` is the table
-    it was built from. Rows must equal the query on every `match` column."""
-    if n <= 0:
-        return []
+) -> pd.DataFrame:
+    """The rows of `pool` that equal the query on every `match` column, closest
+    first, with a `distance` column added. `pool` is a typed feature table."""
     for name in match:
         pool = pool[pool[name] == query[name]]
-    if pool.empty:
-        return []
-
     squared = np.zeros(len(pool))
     for name, scale in scales.items():
         squared += ((pool[name].to_numpy(dtype=float) - float(query[name])) / (scale or 1.0)) ** 2
-    ranked = pool.assign(distance=np.sqrt(squared)).sort_values(["distance", "row"]).head(n)
+    return pool.assign(distance=np.sqrt(squared)).sort_values(["distance", "row"])
 
+
+def cite(
+    ranked: pd.DataFrame, raw: pd.DataFrame, value_columns: Sequence[str], doi: str | None = None
+) -> list[TestRef]:
+    """Ranked rows as citations, with cells copied verbatim from the raw table."""
     cells = raw.set_index("row")
     return [
         TestRef(
@@ -53,3 +49,19 @@ def nearest_tests(
         )
         for test in ranked.itertuples()
     ]
+
+
+def nearest_tests(
+    pool: pd.DataFrame,
+    raw: pd.DataFrame,
+    query: Mapping[str, float | str],
+    scales: Mapping[str, float],
+    n: int,
+    value_columns: Sequence[str],
+    match: Sequence[str] = (),
+    doi: str | None = None,
+) -> list[TestRef]:
+    """The `n` real tests closest to the query. `raw` is the table `pool` was built from."""
+    if n <= 0:
+        return []
+    return cite(rank_tests(pool, query, scales, match).head(n), raw, value_columns, doi)
