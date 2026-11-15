@@ -60,7 +60,7 @@ function Panel({ card }: { card: ModelCard }) {
             )}
           </label>
         ))}
-        <p className="quiet">You can enter values outside the tested range. The model will say so and give no prediction.</p>
+
       </div>
 
       <div>
@@ -125,11 +125,13 @@ export function ModelsPage() {
 
   return (
     <section className="models">
-      <h1>Predictive models</h1>
-      <p className="lede">
-        One model per fuel class, each trained on a single NASA test table. A model answers only inside the conditions NASA tested, and
-        shows the real tests nearest to what you asked.
-      </p>
+      <header className="hero">
+        <p className="eyebrow">Models</p>
+        <h1>
+          Predict, inside <span className="dim">what NASA tested.</span>
+        </h1>
+        <p className="lede">Outside that range the model gives no answer.</p>
+      </header>
 
       <div className="model-list">
         {cards.map((card) => (
@@ -145,8 +147,8 @@ export function ModelsPage() {
 
       {chosen ? (
         <>
-          <p>
-            <strong>{chosen.title}.</strong> {chosen.task === 'matcher' ? 'Finds' : 'Predicts'} {chosen.target}
+          <p className="model-what">
+            {chosen.task === 'matcher' ? 'Finds' : 'Predicts'} {chosen.target}
             {chosen.target_unit && ` in ${pretty(chosen.target_unit)}`}.
           </p>
           <Panel key={chosen.model_id} card={chosen} />

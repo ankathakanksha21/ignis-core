@@ -23,9 +23,9 @@ function settingsFor(mission: Mission, weights: Record<string, number>): Setting
 
 function Meter({ score, thin = false }: { score: number; thin?: boolean }) {
   return (
-    <div className={thin ? 'meter thin' : 'meter'} title={`${points(score)} of 100`}>
-      <div style={{ width: `${points(score)}%` }} />
-    </div>
+    <span className={thin ? 'meter thin' : 'meter'} title={`${points(score)} of 100`}>
+      <span style={{ width: `${points(score)}%` }} />
+    </span>
   )
 }
 
@@ -97,12 +97,14 @@ export function RankingPage() {
 
   return (
     <section className="dashboard ranking">
-      <h1>Rank for a mission</h1>
-      <DashboardNav />
-      <p className="lede">
-        Pick a mission and the investigations are ordered by how well their tests match it. The score is this project's
-        heuristic, not a NASA rating.
-      </p>
+      <header className="hero">
+        <p className="eyebrow">Mission relevance</p>
+        <h1>
+          Which experiments matter <span className="dim">for your mission?</span>
+        </h1>
+        <p className="lede">Pick a mission. The score is ours, not a NASA rating.</p>
+        <DashboardNav />
+      </header>
 
       <p className="filter">
         {setup.missions.map((m) => (
@@ -112,8 +114,14 @@ export function RankingPage() {
         ))}
       </p>
 
+      <p className="profile">
+        {current.oxygen}% oxygen · {current.pressure} kPa · {current.gravity} g{mission.assumed && <span>. {mission.assumed}</span>}
+      </p>
+
+      <details className="adjust">
+        <summary>Change the habitat or the weights</summary>
       <div className="controls">
-        <fieldset>
+        <fieldset className="habitat">
           <legend>Habitat</legend>
           <label>Oxygen {number('oxygen', 0, 100, 1)} %</label>
           <label>
@@ -121,7 +129,7 @@ export function RankingPage() {
           </label>
           <label>Gravity {number('gravity', 0, 1, 0.01)} g</label>
           <p className="quiet">
-            {mission.basis} {mission.assumed && <strong>Assumption: {mission.assumed}</strong>}
+            {mission.basis}
             {ranking && ranking.edited.length > 0 && ' You changed this profile.'}
           </p>
         </fieldset>
@@ -160,9 +168,9 @@ export function RankingPage() {
           <li>A factor the data cannot answer scores 0, so missing data never helps.</li>
         </ul>
       </details>
+      </details>
 
       <p className="filter">
-        Show:{' '}
         {['all', ...Object.keys(PILLAR_NAMES)].map((name) => (
           <button key={name} className={name === pillar ? 'on' : ''} onClick={() => setPillar(name)}>
             {PILLAR_NAMES[name] ?? 'all'}
@@ -171,7 +179,8 @@ export function RankingPage() {
       </p>
       {error && <p role="alert">Could not rank: {error}</p>}
       {shown.length >= 2 && (
-        <p>
+        <p className="quiet list-head">
+          Click a row to see why.{' '}
           <Link to={`/dashboard/compare?ids=${shown.slice(0, 3).map((result) => result.psi_id).join(',')}&mission=${current.mission}`}>
             Compare the top {Math.min(3, shown.length)}
           </Link>
@@ -179,26 +188,30 @@ export function RankingPage() {
       )}
       <ol className="ranked">
         {shown.map((result, index) => (
-          <li key={result.psi_id}>
-            <span className="place">{index + 1}</span>
-            <div className="who">
-              <Link to={`/dashboard/${result.psi_id}`}>{result.name}</Link>
-              <small>
-                {PILLAR_NAMES[result.pillar]}, {result.fuel_class ?? 'no fuel class'}
-              </small>
-            </div>
-            <Meter score={result.score} />
-            <span className="total">{points(result.score)}</span>
-            {result.one_line && (
-              <p className="one-line">
-                <span className="ai-tag">AI summary</span> {result.one_line}
-              </p>
-            )}
-            <div className="factors">
-              {result.factors.map((factor) => (
-                <FactorCell key={factor.id} factor={factor} />
-              ))}
-            </div>
+          <li key={result.psi_id} className="reveal">
+            <details open={index === 0}>
+              <summary>
+                <span className="place">{index + 1}</span>
+                <span className="who">
+                  <Link to={`/dashboard/${result.psi_id}`}>{result.name}</Link>
+                  <small>
+                    {PILLAR_NAMES[result.pillar]} · {result.fuel_class ?? 'no fuel class'}
+                  </small>
+                </span>
+                <Meter score={result.score} />
+                <span className="total">{points(result.score)}</span>
+              </summary>
+              {result.one_line && (
+                <p className="one-line">
+                  <span className="ai-tag">AI</span> {result.one_line}
+                </p>
+              )}
+              <div className="factors">
+                {result.factors.map((factor) => (
+                  <FactorCell key={factor.id} factor={factor} />
+                ))}
+              </div>
+            </details>
           </li>
         ))}
       </ol>

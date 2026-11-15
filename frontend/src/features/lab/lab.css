@@ -1,99 +1,22 @@
-.lab {
-  --line: color-mix(in srgb, currentColor 18%, transparent);
-  --quiet: color-mix(in srgb, currentColor 62%, transparent);
-  --surface: #fcfcfb;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --muted: #898781;
-  --grid: #e1e0d9;
-  --series-0: #2a78d6;
-  --series-1: #eb6834;
-  --series-2: #1baf7a;
-  --warn: #c2410c;
-}
-
-@media (prefers-color-scheme: dark) {
-  .lab {
-    --surface: #1a1a19;
-    --ink: #f0efec;
-    --ink-2: #c3c2b7;
-    --grid: #2c2c2a;
-    --series-0: #3987e5;
-    --series-1: #d95926;
-    --series-2: #199e70;
-  }
-}
-
-.lab .lede,
-.lab .quiet {
-  color: var(--quiet);
-}
-
-.lab .lede {
-  max-width: 48rem;
-}
-
-.lab .quiet {
-  font-size: 0.85rem;
-}
-
-.lab .sub-nav {
-  display: flex;
-  gap: 1.2rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.lab .sub-nav a {
-  padding-bottom: 0.4rem;
-  color: var(--quiet);
-  text-decoration: none;
-}
-
-.lab .sub-nav a.active {
-  border-bottom: 2px solid currentColor;
-  color: inherit;
-  font-weight: 600;
-}
-
-.lab h2 {
-  margin: 1.6rem 0 0.4rem;
-  font-size: 1.05rem;
-}
-
-.lab .filter button,
-.lab .transport button {
-  margin: 0 0.25rem 0.25rem 0;
-  padding: 0.2rem 0.7rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-.lab .filter button.on {
-  background: color-mix(in srgb, currentColor 14%, transparent);
-  font-weight: 600;
-}
+/* Lab pages. Colours and fonts come from index.css.
+   The chart frame, legend and tooltip are styled in dashboard.css. */
 
 .lab .tag {
-  margin-left: 0.4rem;
-  padding: 0.05rem 0.5rem;
-  border: 1px solid var(--line);
+  margin-left: 0.5rem;
+  padding: 0.12rem 0.55rem;
   border-radius: 999px;
-  color: var(--quiet);
-  font-size: 0.75rem;
-  font-weight: 400;
+  background: color-mix(in srgb, var(--link) 15%, transparent);
+  color: var(--link);
+  font-size: 0.85rem;
   vertical-align: middle;
 }
 
 .bench {
   display: grid;
   grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr);
-  gap: 1.2rem;
+  gap: 1rem;
   align-items: start;
+  margin-top: 1rem;
 }
 
 @media (max-width: 760px) {
@@ -102,44 +25,57 @@
   }
 }
 
-.lab .box {
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-}
-
 .lab .box h2 {
-  margin-top: 0;
+  margin: 0 0 0.9rem;
+  color: var(--faint);
+  font-size: 0.85rem;
 }
 
-/* Simulated output sits on a dashed frame so it never reads as a measurement. */
+/* Simulated output sits in a dashed frame so it never reads as a measurement. */
 .lab .simulated {
   border-style: dashed;
-  border-color: var(--series-0);
+  border-color: color-mix(in srgb, var(--series-0) 70%, transparent);
 }
 
 .lab .measured {
-  margin-top: 1.4rem;
-  padding: 0.2rem 1rem 0.8rem;
+  margin-top: 1.6rem;
+  padding: 1rem 1.2rem;
   border: 1px solid var(--line);
-  border-left: 4px solid currentColor;
-  border-radius: 8px;
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 
-.controls label {
+.lab .measured h2 {
+  margin-top: 0;
+}
+
+.lab .measured .tag {
+  background: color-mix(in srgb, var(--suppression) 16%, transparent);
+  color: var(--suppression);
+}
+
+.lab .controls label {
   display: grid;
-  gap: 0.15rem;
-  margin-bottom: 0.7rem;
+  gap: 0.2rem;
+  margin-bottom: 0.85rem;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
-.controls input[type='range'],
-.controls select {
+.lab .controls label strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.lab .controls input[type='range'],
+.lab .controls select {
   width: 100%;
-  font: inherit;
 }
 
 .droplet-view {
-  max-width: 30rem;
+  max-width: 32rem;
+  margin: 0 auto;
 }
 
 .droplet-view svg {
@@ -153,19 +89,14 @@
 }
 
 .droplet-view .caption {
-  fill: var(--ink-2);
+  fill: var(--muted);
   font-size: 12px;
-}
-
-.lab .droplet-view .caption {
-  fill: currentColor;
-  opacity: 0.75;
 }
 
 .transport {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.7rem;
   margin: 0.2rem 0;
 }
 
@@ -174,94 +105,83 @@
 }
 
 .lab .grid {
-  stroke: var(--line);
+  stroke: var(--grid);
   stroke-width: 1;
 }
 
 .lab .tick {
-  fill: currentColor;
-  opacity: 0.6;
+  fill: var(--faint);
   font-size: 11px;
 }
 
 .curve .line {
   fill: none;
   stroke: var(--series-0);
-  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  stroke-width: 2;
 }
 
 .curve .cross {
-  stroke: currentColor;
+  stroke: var(--muted);
   stroke-width: 1;
-  opacity: 0.35;
+  opacity: 0.5;
 }
 
 .curve .dot {
   fill: var(--series-0);
-  stroke: Canvas;
+  stroke: var(--surface);
   stroke-width: 2;
 }
 
 .readout {
   margin: 0.2rem 0;
+  color: var(--muted);
   font-size: 0.9rem;
 }
 
-.tiles {
+.lab .tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   gap: 0.6rem;
-  margin: 0.8rem 0;
+  margin: 1rem 0 0.6rem;
 }
 
-.tiles div {
-  padding: 0.5rem 0.7rem;
+.lab .tiles div {
+  padding: 0.7rem 0.9rem;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
 }
 
-.tiles dt {
-  color: var(--quiet);
-  font-size: 0.8rem;
+.lab .tiles dt {
+  color: var(--faint);
+  font-size: 0.75rem;
 }
 
-.tiles dd {
+.lab .tiles dd {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 600;
+  font: 400 1.3rem/1.25 var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 .lab details {
   font-size: 0.88rem;
 }
 
-.lab summary {
-  cursor: pointer;
-}
-
 .refused {
-  padding: 0.5rem 0.8rem;
-  border-left: 4px solid var(--warn);
-  background: color-mix(in srgb, var(--warn) 8%, transparent);
-}
-
-.lab .scroll {
-  overflow-x: auto;
+  padding: 0.8rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warn) 9%, transparent);
 }
 
 .lab table {
-  border-collapse: collapse;
   font-size: 0.85rem;
 }
 
-.lab th,
-.lab td {
-  padding: 0.3rem 0.9rem 0.3rem 0;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  vertical-align: top;
+.lab .variants {
+  max-width: 44rem;
 }
 
 .lab .measured th,
@@ -269,77 +189,25 @@
   white-space: nowrap;
 }
 
-.lab th {
-  color: var(--quiet);
-  font-weight: 500;
-}
-
-.lab .missing {
-  color: var(--quiet);
-  font-style: italic;
-}
-
 .unsupported {
-  max-width: 50rem;
+  max-width: 52rem;
   padding-left: 1.2rem;
+  color: var(--muted);
+  font-size: 0.92rem;
 }
 
 .unsupported li {
   margin-bottom: 0.4rem;
 }
 
-/* Pattern explorer. Colours are the validated first three categorical slots. */
+/* Pattern explorer */
 
 .lab .pickers {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.2rem;
-}
-
-.lab .pickers select {
-  font: inherit;
-}
-
-.lab .viz {
-  margin: 1rem 0;
-  padding: 1rem;
-  border: 1px solid var(--grid);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--ink);
-}
-
-.lab .viz figcaption span {
-  display: block;
-  color: var(--ink-2);
-  font-size: 0.85rem;
-}
-
-.lab .viz .quiet {
-  color: var(--ink-2);
-}
-
-.lab .legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 1.2rem;
-  margin: 0.6rem 0;
-  padding: 0;
-  list-style: none;
-  color: var(--ink-2);
-  font-size: 0.85rem;
-}
-
-.lab .legend li {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.lab .legend svg {
-  flex: none;
-  width: 14px;
-  height: 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .lab .series-0 { fill: var(--series-0); stroke: var(--series-0); }
@@ -350,55 +218,12 @@
   stroke: none;
 }
 
-.lab .plot {
-  overflow-x: auto;
-}
-
-.lab .plot-inner {
-  position: relative;
-  min-width: 34rem;
-}
-
-.lab .plot svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.lab .viz .grid { stroke: var(--grid); }
-.lab .viz .axis { stroke: #c3c2b7; stroke-width: 1; }
-.lab .viz .tick { fill: var(--muted); opacity: 1; }
-.lab .viz .axis-title { fill: var(--ink-2); font-size: 12px; }
-
-.lab .mark { outline: none; }
 .lab .mark > :not(.hit) { stroke: var(--surface); stroke-width: 1.5; }
-.lab .mark .hit { fill: transparent; stroke: none; }
+
 /* A flagged row: outline only, in its series colour. */
 .lab .mark.flagged > :not(.hit) { fill: var(--surface); stroke: inherit; stroke-width: 2; }
-.lab .mark:hover > :not(.hit), .lab .mark:focus-visible > :not(.hit) { stroke: var(--ink); }
+.lab .mark:hover > :not(.hit), .lab .mark:focus-visible > :not(.hit) { stroke: var(--text); }
 
 .lab .tip {
-  position: absolute;
-  z-index: 1;
-  display: grid;
-  gap: 0.1rem;
-  width: max-content;
   max-width: 16rem;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--grid);
-  border-radius: 6px;
-  background: var(--surface);
-  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
-  color: var(--ink-2);
-  font-size: 0.8rem;
-  pointer-events: none;
-  transform: translate(12px, -50%);
-}
-
-.lab .tip[data-side='left'] {
-  transform: translate(calc(-100% - 12px), -50%);
-}
-
-.lab .tip strong {
-  color: var(--ink);
 }

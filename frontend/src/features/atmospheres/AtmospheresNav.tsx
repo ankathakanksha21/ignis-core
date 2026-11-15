@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 
 export function AtmospheresNav() {
   return (
-    <nav className="sub-nav">
+    <nav className="subnav">
       <NavLink to="/atmospheres" end>
         Gap map
       </NavLink>

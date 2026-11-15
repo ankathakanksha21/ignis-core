@@ -1,109 +1,121 @@
+/* Ask page. Colours and fonts come from index.css. */
+
 .ask {
-  --line: color-mix(in srgb, currentColor 18%, transparent);
-  --quiet: color-mix(in srgb, currentColor 62%, transparent);
-  max-width: 52rem;
-}
-
-.ask .lede,
-.ask .quiet {
-  color: var(--quiet);
-}
-
-.ask .quiet {
-  font-size: 0.85rem;
+  max-width: 50rem;
+  margin: 0 auto;
 }
 
 .ask form {
   display: flex;
   gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.4rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+
+.ask form:focus-within {
+  border-color: var(--link);
 }
 
 .ask form input {
   flex: 1;
   min-width: 0;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  font: inherit;
-}
-
-.ask button {
-  padding: 0.4rem 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+  border: 0;
   background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+  font-size: 1rem;
+  outline: none;
 }
 
-.ask button:disabled {
-  cursor: default;
-  opacity: 0.6;
+.ask form button {
+  padding: 0.5rem 1.3rem;
 }
 
-.examples {
+.ask .examples {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.4rem;
 }
 
-.examples button {
-  border-radius: 999px;
-  font-size: 0.85rem;
+.ask .examples button {
+  color: var(--muted);
+  font-size: 0.82rem;
   text-align: left;
 }
 
 .answer {
-  margin: 1.5rem 0;
-  padding: 0.2rem 1rem 0.6rem;
+  margin: 1.8rem 0 1rem;
+  padding: 1.2rem 1.4rem;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.answer h2 {
+  margin: 0 0 0.8rem;
+  font-size: 1.2rem;
+}
+
+.answer > p {
+  margin: 0.55rem 0;
 }
 
 .ask h2 {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 .cite {
   display: inline-block;
-  min-width: 1.3em;
+  min-width: 1.4em;
   margin-right: 0.15rem;
-  padding: 0 0.3em;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  color: inherit;
-  font-size: 0.75rem;
+  padding: 0 0.35em;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  font: 500 0.7rem/1.5 var(--font-mono);
   text-align: center;
+  vertical-align: 0.15em;
+}
+
+.cite:hover {
+  background: var(--accent);
+  color: var(--on-accent);
   text-decoration: none;
 }
 
 .not-covered {
-  padding: 0.5rem 0.8rem;
-  border-left: 4px solid currentColor;
-  background: color-mix(in srgb, currentColor 6%, transparent);
+  padding: 0.7rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warn) 9%, transparent);
+  font-size: 0.92rem;
 }
 
 .sources {
-  padding-left: 1.6rem;
+  margin: 0.6rem 0;
+  padding-left: 1.7rem;
 }
 
 .sources li {
-  margin-bottom: 0.7rem;
-  padding: 0.3rem 0.6rem;
-  border-left: 3px solid transparent;
-  color: var(--quiet);
-  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  transition: background 0.15s;
 }
 
-.sources li.used {
-  border-left-color: currentColor;
-  color: inherit;
+.sources li::marker {
+  color: var(--accent);
+  font: 500 0.75rem var(--font-mono);
 }
 
 .sources li.lit,
 .sources li:target {
-  background: color-mix(in srgb, currentColor 8%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .sources p {
@@ -112,5 +124,17 @@
 }
 
 .sources small {
-  color: var(--quiet);
+  color: var(--faint);
+}
+
+.ask details {
+  font-size: 0.9rem;
+}
+
+.ask details .sources li {
+  color: var(--muted);
+}
+
+.ask details .sources li::marker {
+  color: var(--faint);
 }

@@ -1,56 +1,41 @@
 import { Link } from 'react-router-dom'
-import { CONDITIONS, NOT_STATED, gravity, range, testCount } from './format.ts'
+import { PILLAR_NAMES, range, testStat } from './format.ts'
 import type { Card } from './types.ts'
 
-const ON_CARD = CONDITIONS.filter((c) => ['o2_mole_fraction', 'pressure_kpa', 'flow_cm_s'].includes(c.field))
-
+/** A name, one line and two numbers. Everything else, and every source, is one click away. */
 export function InvestigationCard({ card }: { card: Card }) {
-  const moreFuels = card.fuel_count - card.fuels.length
-  const hasTable = card.test_rows + card.summary_rows > 0
+  const tests = testStat(card)
+  const oxygen = card.conditions.o2_mole_fraction
+  const line = card.ai_summary?.one_line ?? card.objective_short
   return (
-    <article className={`card pillar-${card.pillar}`}>
+    <article className={`card reveal pillar-${card.pillar}`}>
+      <p className="card-top">
+        <span className="pillar-name">{PILLAR_NAMES[card.pillar]}</span>
+        <span>{card.fuel_class ?? 'no fuel class'}</span>
+        <span className="go" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7 17 17 7M9 7h8v8" />
+          </svg>
+        </span>
+      </p>
       <h3>
         <Link to={`/dashboard/${card.psi_id}`}>{card.name}</Link>
       </h3>
-      <p className="tags">
-        <span>{card.fuel_class ?? 'no fuel class'}</span>
-        <span>{gravity(card)}</span>
-        <span>{card.psi_id}</span>
-      </p>
-      {card.ai_summary ? (
+      {line && (
         <p className="objective">
-          <span className="ai-tag">AI summary</span> {card.ai_summary.one_line}
+          {card.ai_summary && <span className="ai-tag">AI</span>} {line}
         </p>
-      ) : (
-        card.objective_short && <p className="objective">{card.objective_short}</p>
       )}
-      <dl>
-        <dt>Tests</dt>
-        <dd>{testCount(card)}</dd>
-        {hasTable && (
-          <>
-            <dt>Fuel</dt>
-            <dd>
-              {card.fuels.length ? card.fuels.join(', ') : NOT_STATED}
-              {moreFuels > 0 && ` and ${moreFuels} more`}
-            </dd>
-            {ON_CARD.map((c) => (
-              <div key={c.field} className="pair">
-                <dt>{c.label}</dt>
-                <dd className={card.conditions[c.field] ? '' : 'missing'}>{range(card.conditions[c.field], c.scale, c.unit)}</dd>
-              </div>
-            ))}
-          </>
-        )}
+      <dl className="stats">
+        <div>
+          <dd>{tests.value}</dd>
+          <dt>{tests.label}</dt>
+        </div>
+        <div>
+          <dd className={oxygen ? '' : 'missing'}>{range(oxygen, 100, '%')}</dd>
+          <dt>oxygen</dt>
+        </div>
       </dl>
-      <p className="foot">
-        {card.flag_count > 0 && <span className="flagged">{card.flag_count} flagged cells</span>}
-        {card.doi && (
-          <a href={`https://doi.org/${card.doi}`} target="_blank" rel="noreferrer">
-            DOI
-          </a>
-        )}
-      </p>
     </article>
   )
 }

@@ -45,18 +45,39 @@ export function AskPage() {
   }
 
   const cited = new Set(answer?.sentences.flatMap((s) => s.cites))
+  const used = answer?.evidence.filter((item) => cited.has(item.n)) ?? []
+  const unused = answer?.evidence.filter((item) => !cited.has(item.n)) ?? []
+  // Each source keeps the number the answer cites it by.
+  const source = (item: Answer['evidence'][number]) => (
+    <li key={item.n} value={item.n} id={`source-${item.n}`} className={lit.includes(item.n) ? 'lit' : ''}>
+      <p>{item.text}</p>
+      <small>
+        {item.source}
+        {item.psi_id && (
+          <>
+            {' · '}
+            <Link to={`/dashboard/${item.psi_id}`}>{item.name}</Link>
+          </>
+        )}
+      </small>
+    </li>
+  )
 
   return (
     <section className="ask">
-      <h1>Ask</h1>
-      <p className="lede">
-        Ask about NASA's microgravity combustion investigations. A language model answers from the sources listed under the answer, and
-        every sentence cites the ones it used.
-      </p>
+      <header className="hero">
+        <p className="eyebrow">Ask</p>
+        <h1>
+          Ask <span className="dim">the data.</span>
+        </h1>
+        <p className="lede">Answers come from NASA's records. Every sentence shows its source.</p>
+      </header>
 
       <form onSubmit={submit}>
         <input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask a question" maxLength={400} aria-label="Question" />
-        <button disabled={busy || question.trim().length < 3}>{busy ? 'Reading the sources…' : 'Ask'}</button>
+        <button className="primary" disabled={busy || question.trim().length < 3}>
+          {busy ? 'Reading…' : 'Ask'}
+        </button>
       </form>
       <p className="examples">
         {EXAMPLES.map((example) => (
@@ -70,7 +91,7 @@ export function AskPage() {
 
       {answer && !busy && (
         <>
-          <div className="answer">
+          <div className="answer reveal">
             <h2>{answer.question}</h2>
             {answer.sentences.map((sentence) => (
               <p key={sentence.text} onPointerEnter={() => setLit(sentence.cites)} onPointerLeave={() => setLit([])}>
@@ -95,24 +116,20 @@ export function AskPage() {
             <p className="quiet">Written by {answer.model}. It can be wrong, so check it against the sources.</p>
           </div>
 
-          <h2>Sources the model was given</h2>
-          <ol className="sources">
-            {answer.evidence.map((item) => (
-              <li key={item.n} id={`source-${item.n}`} className={`${cited.has(item.n) ? 'used' : ''}${lit.includes(item.n) ? ' lit' : ''}`}>
-                <p>{item.text}</p>
-                <small>
-                  {item.source}
-                  {item.psi_id && (
-                    <>
-                      {' · '}
-                      <Link to={`/dashboard/${item.psi_id}`}>{item.name}</Link>
-                    </>
-                  )}
-                  {cited.has(item.n) && ' · used in the answer'}
-                </small>
-              </li>
-            ))}
-          </ol>
+          {used.length > 0 && (
+            <>
+              <h2>Sources cited</h2>
+              <ol className="sources">{used.map(source)}</ol>
+            </>
+          )}
+          {unused.length > 0 && (
+            <details>
+              <summary>
+                {unused.length} more {unused.length === 1 ? 'source' : 'sources'} the model was given but did not cite
+              </summary>
+              <ol className="sources">{unused.map(source)}</ol>
+            </details>
+          )}
         </>
       )}
     </section>

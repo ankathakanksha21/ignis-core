@@ -35,9 +35,14 @@ export function GapMapPage() {
 
   return (
     <section className="atmospheres">
-      <h1>Exploration atmospheres</h1>
-      <AtmospheresNav />
-      <p className="lede">Where NASA has tested, set against the atmosphere of a habitat. Empty cells are conditions nobody has tested.</p>
+      <header className="hero">
+        <p className="eyebrow">Gap map</p>
+        <h1>
+          What has never <span className="dim">been tested?</span>
+        </h1>
+        <p className="lede">Pick a habitat. Empty cells are conditions NASA has not tested.</p>
+        <AtmospheresNav />
+      </header>
 
       <p className="filter">
         {habitats.map((h) => (
@@ -46,18 +51,37 @@ export function GapMapPage() {
           </button>
         ))}
       </p>
-      <p>
-        <strong>{habitat.label}:</strong> {percent(habitat.o2_mole_fraction)} oxygen{habitat.open_ended && ' or more'}, {habitat.pressure_kpa} kPa (
-        {(habitat.pressure_kpa / KPA_PER_PSI).toFixed(1)} psi){habitat.open_ended && ' or less'}, gravity{' '}
-        {habitat.gravity_g === null ? 'not stated' : `${habitat.gravity_g} g`}. <span className="quiet">{habitat.basis}</span>
+      <dl className="habitat-tiles">
+        <div>
+          <dd>
+            {percent(habitat.o2_mole_fraction)}
+            {habitat.open_ended && <small> or more</small>}
+          </dd>
+          <dt>oxygen</dt>
+        </div>
+        <div>
+          <dd>
+            {habitat.pressure_kpa} kPa
+            <small>
+              {habitat.open_ended && ' or less'} · {(habitat.pressure_kpa / KPA_PER_PSI).toFixed(1)} psi
+            </small>
+          </dd>
+          <dt>pressure</dt>
+        </div>
+        <div>
+          <dd className={habitat.gravity_g === null ? 'missing' : ''}>{habitat.gravity_g === null ? 'not stated' : `${habitat.gravity_g} g`}</dd>
+          <dt>gravity</dt>
+        </div>
+      </dl>
+      <p className="quiet center">
+        {habitat.basis} {habitat.assumed && `Assumption: ${habitat.assumed}`}
       </p>
-      {habitat.assumed && <p className="quiet">Assumption: {habitat.assumed}</p>}
-      <p className="gravity-note">{map.gravity_note}</p>
+      <p className={habitat.gravity_g === 0 ? 'quiet' : 'note'}>{map.gravity_note}</p>
 
-      <h2>Knowledge-gap map</h2>
+      <h2>Tests per condition</h2>
       <p className="quiet">
-        Rows of NASA's test tables in each cell of oxygen (across) against pressure in kPa (up). The outlined cell holds the habitat
-        {habitat.open_ended && ', and the dotted cells are also within its bounds'}.
+        Oxygen runs across and pressure (kPa) runs up. The orange ring marks the habitat.
+        {habitat.open_ended && ' Orange-edged cells also fit it.'}
       </p>
       <ul className="gap-legend">
         <li>
@@ -74,7 +98,7 @@ export function GapMapPage() {
       </ul>
       <div className="gap-maps">
         {map.classes.map((fuel) => (
-          <figure key={fuel.fuel_class}>
+          <figure key={fuel.fuel_class} className="reveal">
             <figcaption>{FUEL_NAMES[fuel.fuel_class] ?? fuel.fuel_class}</figcaption>
             <GapGrid map={map} fuel={fuel} onHover={setHover} />
           </figure>
@@ -83,6 +107,8 @@ export function GapMapPage() {
       <p className="gap-detail" aria-live="polite">
         {hover ?? 'Point at a cell to see its tests.'}
       </p>
+      <details>
+        <summary>What is not counted</summary>
       <ul className="quiet notes">
         {map.classes.map((fuel) => {
           const parts = []
@@ -92,8 +118,9 @@ export function GapMapPage() {
         })}
         <li>Not mapped: {map.unmapped.join(' and ')} studies state no oxygen or pressure.</li>
       </ul>
+      </details>
 
-      <h2>Closest real test to this habitat</h2>
+      <h2>Closest real test</h2>
       <table>
         <thead>
           <tr>
@@ -120,15 +147,14 @@ export function GapMapPage() {
         </tbody>
       </table>
 
-      <h2>Untested conditions nearest this habitat</h2>
+      <h2>Experiments worth running next</h2>
       <p className="quiet">
-        Candidates for future experiments, ranked in code by closeness to the habitat and by how close the fuel is to a cabin
-        material. The ranking is this project's, not NASA's.
+        The nearest untested conditions. Solid fuels score higher because cabin materials are solids. The score is ours, not NASA's.
       </p>
       {map.suggestions.length === 0 && <p>No empty cell lies near this habitat.</p>}
       <ol className="suggestions">
         {map.suggestions.map((s) => (
-          <li key={`${s.fuel_class}-${s.column}-${s.row}`}>
+          <li key={`${s.fuel_class}-${s.column}-${s.row}`} className="reveal">
             <strong>
               {FUEL_NAMES[s.fuel_class] ?? s.fuel_class} at {s.oxygen} oxygen and {s.pressure}
             </strong>

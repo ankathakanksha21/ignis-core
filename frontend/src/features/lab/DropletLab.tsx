@@ -59,6 +59,7 @@ function Variants({ settings }: { settings: Settings }) {
 
   if (found?.request !== request) return null
   return (
+    <div className="scroll">
     <table className="variants">
       <thead>
         <tr>
@@ -90,6 +91,7 @@ function Variants({ settings }: { settings: Settings }) {
         })}
       </tbody>
     </table>
+    </div>
   )
 }
 
@@ -119,10 +121,7 @@ export function DropletLab() {
 
   return (
     <>
-      <p className="lede">
-        One fuel droplet burning in still gas in microgravity. Everything in the left and middle panels is <strong>simulated</strong> by
-        a simplified model fitted to NASA's FLEX tests. The table underneath is <strong>measured</strong>.
-      </p>
+      <p className="lede center">Simulated from NASA's FLEX tests. Real tests are shown below.</p>
       <p className="filter">
         {PRESETS.map((preset) => (
           <button key={preset.name} className={JSON.stringify(preset.settings) === request ? 'on' : ''} onClick={() => setSettings(preset.settings)}>
