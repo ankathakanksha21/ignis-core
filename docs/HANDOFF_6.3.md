@@ -9,7 +9,7 @@ To start a session: open it on `ankathakanksha21/ignis-core` and say "Read docs/
 - The project is "Flame in Freefall", a NASA Space Apps 2026 dashboard over NASA's microgravity combustion experiments (the PSI repository).
 - Two people build it. @ankathakanksha21 builds the dashboard (features 6.1, 6.2, 6.4, 6.5 and data ingest). You build 6.3: the predictive models and a simplified physics engine.
 - Your work is a standalone Python package, `ml/` (`ignis_ml`). It needs no backend, frontend, Node or API key.
-- The rest of the app calls three functions in `ml/src/ignis_ml/api.py`. `flex_burning_rate` is now real on branch `feat/6.3-flex-burning-rate`. The other models and `simulate()` still answer `not_implemented`, which is a valid response the dashboard already handles.
+- The rest of the app calls three functions in `ml/src/ignis_ml/api.py`. `flex_burning_rate` is real on `main`, and `simulate()` answers for the droplet scenario on branch `feat/6.3-physics-d2`. The other models and the solid scenario still answer `not_implemented`, which is a valid response the dashboard already handles.
 - The plan is one model per fuel class (droplet, gas, solid), as the problem statement says.
 - The data is already in the repository at `data/raw/`. Nothing to download.
 - Ingest has landed. `data/processed/quality_flags.csv` lists the suspicious cells, and the models leave flagged rows out of training. `data/processed/rows.csv` marks each raw row as `test`, `summary` or `other`.
@@ -51,8 +51,8 @@ One short branch per line, each merged by pull request before the next starts.
 
 | # | Branch | Fuel | What | Status |
 | --- | --- | --- | --- | --- |
-| 1 | `feat/6.3-flex-burning-rate` | droplet | Regression of droplet burning rate on FLEX (PSI-69), plus the shared pieces. | Built and pushed, pull request not opened yet. |
-| 2 | `feat/6.3-physics-d2` | droplet | `simulate()` for the droplet scenario using the d² law, calibrated on FLEX. | Built on its own branch, stacked on step 1. The combustion lab (6.4) can call it once both are merged. |
+| 1 | `feat/6.3-flex-burning-rate` | droplet | Regression of droplet burning rate on FLEX (PSI-69), plus the shared pieces. | Merged. |
+| 2 | `feat/6.3-physics-d2` | droplet | `simulate()` for the droplet scenario using the d² law, calibrated on FLEX. | Built, pull request not opened yet. The combustion lab (6.4) can call it once it is merged. |
 | 3 | `feat/6.3-cfig-ignition` | gas | Classification of hot ignition (yes or no) on the CFI-G Normal Flames table only (PSI-159, 179 tests, label filled in every row). | Needs a small contract pull request first (see open questions). |
 | 4 | `feat/6.3-solid-matcher` | solid | Nearest real tests for a solid-fuel query over BASS-II (PSI-25, 129 tests) and Saffire (PSI-98, -99, -100, 13 tests). A matcher, not a trained model. It reuses `nearest.py`. | Not started. |
 
@@ -146,7 +146,7 @@ open a pull request into main, wait for CI, squash and merge, delete the branch
 
 ## 8. Next task
 
-Steps 1 and 2 are built. Merge them in order: squash and merge `feat/6.3-flex-burning-rate`, then bring `feat/6.3-physics-d2` up to date with `main` and merge it.
+Step 1 is merged. Step 2 is built on `feat/6.3-physics-d2` and waits for its pull request.
 
 How step 2 works, in `ml/src/ignis_ml/physics/droplet.py`: the burning-rate constant is the `flex_burning_rate` model's value for the requested conditions, so the engine and the model cannot disagree. The flame-out diameter is the median over the 5 nearest real tests of the same fuel that recorded an extinction diameter, and those tests are the ones cited. Checked against FLEX, the law's burn time is a median 0.95 of the measured one across 154 tests that ended in extinction.
 
