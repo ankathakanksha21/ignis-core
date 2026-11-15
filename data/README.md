@@ -33,7 +33,9 @@ The row counts of every table listed in the problem statement match. These are a
 | SLICE was read | PSI-106, 12 rows, 2 columns. |
 | ACME Flame Design has a second table | PSI-10 "Inverse Flame", 120 rows, beside "Normal Flame" (207). |
 | ACME CFI-G has a second table | PSI-159 "Inverse Flames", 154 rows, beside "Normal Flames" (179). The file is 1,016 rows long because 861 of them are empty. |
-| A ground study has a table | PSI-142 "Data Summary Table", 8 rows. |
+| A ground study has a table | PSI-142 "Data Summary Table", 8 rows. They point to figures in publications and are not tests. |
+| Saffire has 13 tests, not 21 | Saffire-I 2, Saffire-II 9, Saffire-III 2. The other 8 rows are flow-visualisation files and footnotes. |
+| Several tables list test days, not tests | ACME BRE, CLD Flame, E-FIELD Flames, s-Flame, SLICE and FLEX-2 give one row per test day or per fuel, often with a count of flames ignited. |
 | The search pages at 25 | The default search returns 25 of the 26 hits and drops PSI-101 (SAME-R). The script asks for `size=100`. |
 | Licences | 25 records say CC0-1.0. PSI-10 (ACME Flame Design) has an empty licence field. |
 
@@ -51,6 +53,34 @@ The row counts of every table listed in the problem statement match. These are a
 - Investigator `email`, `phone`, `fax` and `address`. Names and affiliations are kept.
 
 The lists of PDF reports per investigation are not in the snapshot. They are needed only for report search (third tier) and can be added to the script then.
+
+## The processed files in `processed/`
+
+Built from `raw/` by ingest. From `backend/`:
+
+```bash
+python -m app.ingest
+```
+
+The files are committed so a change in ingest shows up as a data diff in review. A test fails if they fall behind the code.
+
+| File | One line per | Holds |
+| --- | --- | --- |
+| `rows.csv` | raw row | Kind of row, fuel, fuel class, gravity, and the lowest and highest value of each condition. |
+| `conditions.csv` | condition value | The value in contract units, how it was written, and the column, row and cell text it came from. |
+| `quality_flags.csv` | suspicious cell | The check that fired and why. Format fixed by `docs/CONTRACTS.md`. |
+| `investigations.json` | investigation | Record text, DOI, publications, and per table: column mapping, row counts, ranges, flag counts. |
+
+How to read them:
+
+- **Row kinds.** `test` is one test. `summary` stands for several tests (a test day, or one fuel's test matrix); `tests_in_row` gives the count where the table states it. `other` is not a test (a footnote, a continuation line, a file listing). Filter on `row_kind` before counting.
+- **Listed values.** A cell such as `21; 26.5; 40` becomes three `listed` values. Only those three were tested; do not treat the row as covering everything from 21 to 40.
+- **Approximate values.** A `~` in the cell, or "approx" in the header, sets `approximate`.
+- **Two kinds of oxygen.** `o2_mole_fraction` is oxygen in the atmosphere around the flame. `burner_o2_mole_fraction` is oxygen fed through the burner into a fuel atmosphere (the inverse flames). The 85% oxygen in ACME CFI-G is the second kind and is not a cabin atmosphere.
+- **Not stated.** A condition the table does not give has no line in `conditions.csv`. Nothing is filled in from general knowledge.
+- **Flags.** A value that is physically impossible (pressure of 0, 3400% oxygen) is flagged and left out of `conditions.csv`. Every other flagged cell is kept. The thresholds are this project's judgement, not NASA's.
+
+To add or change a column mapping, edit `backend/app/ingest/specs.py`, rebuild, and commit the code and the data together.
 
 ## Citing
 
