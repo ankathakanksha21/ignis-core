@@ -11,13 +11,18 @@ from .. import voice
 router = APIRouter(prefix="/voice", tags=["voice"])
 
 
-Kind = Literal["investigation", "compare", "rank", "gaps", "prediction", "lab", "similar"]
+Kind = Literal["investigation", "compare", "rank", "gaps", "prediction", "lab", "similar",
+               "pattern", "quality", "earth", "overview"]  # fmt: skip
 
 
 class ExplainRequest(BaseModel):
     kind: Kind
     # What the page is showing, in the same names the page's own request uses.
     params: dict = {}
+    # Who is listening: it changes the wording, never the facts.
+    level: Literal["student", "researcher"] = "student"
+    # False when the page only shows the explanation as text, so no voice conversation is prepared.
+    speak: bool = True
 
 
 class Turn(BaseModel):
@@ -34,7 +39,7 @@ class AnswerRequest(ExplainRequest):
 @router.post("/explain")
 def explain(body: ExplainRequest) -> dict:
     try:
-        return voice.explain(body.kind, body.params)
+        return voice.explain(body.kind, body.params, body.level, body.speak)
     except (KeyError, StopIteration) as error:
         raise HTTPException(404, f"Nothing to explain: {error}") from error
     except (ValueError, TypeError, ValidationError) as error:
@@ -45,7 +50,7 @@ def explain(body: ExplainRequest) -> dict:
 def answer(body: AnswerRequest) -> dict:
     """A typed question about the page, answered from its facts and checked before it is read aloud."""
     try:
-        return voice.answer(body.kind, body.params, body.question.strip(), [turn.model_dump() for turn in body.history])
+        return voice.answer(body.kind, body.params, body.question.strip(), [turn.model_dump() for turn in body.history], body.level)
     except (KeyError, StopIteration) as error:
         raise HTTPException(404, f"Nothing to explain: {error}") from error
     except RuntimeError as error:  # the key is not set

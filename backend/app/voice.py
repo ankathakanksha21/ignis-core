@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import statistics
 import sys
 import urllib.error
 import urllib.parse
@@ -29,7 +30,7 @@ from ignis_ml import api as models
 from ignis_ml import raw
 from ignis_ml.contract import PredictRequest, SimulateRequest
 
-from . import catalog, conditions, gaps, llm, ranking, store, summaries
+from . import catalog, conditions, earth, gaps, llm, quality, ranking, store, summaries
 
 ELEVENLABS = "https://api.elevenlabs.io/v1/convai"
 MAX_FACT_CHARS = 6000  # what is handed to the agent; the page shows the same list
@@ -46,7 +47,8 @@ Return JSON only: {"script": "...", "highlights": ["...", "...", "..."]}
 
 Rules:
 - Copy any number exactly as written in the facts. Never calculate, round or estimate a number.
-- No lists, no headings, no symbols that cannot be read aloud.
+- Write every number in digits, such as 274 and 34%, never in words.
+- No lists, no headings, no dashes, no symbols that cannot be read aloud.
 - A prediction or a simulation is never a measurement. Say which it is.
 - A table row is not always one test. Use the "Number of tests" fact for how many tests there were.
 - Do not mention any investigation the facts do not name.
@@ -74,6 +76,50 @@ RULES
 - If they only say stop, wait, or that they have a question, reply with just "Go ahead." and listen."""
 
 NOT_COVERED = "That is not in the data on this page. The Ask page searches all the records."
+
+
+# Who is listening. It changes the wording, never the facts.
+AUDIENCES = {
+    "student": "The listener is a student who is new to combustion. Use everyday words, explain one term using the "
+               "background lines, and say why this matters for astronauts.",
+    "researcher": "The listener is a researcher. Be precise, lead with the numbers and with the limits of the data, "
+                  "and skip basic definitions.",
+}  # fmt: skip
+
+# Plain-word background for a newcomer. General science, written by this project, with no measured values in it.
+BACKGROUND = {
+    "microgravity": "Without buoyancy, hot gas does not rise. Flames are rounder and are fed only by slow diffusion or by ventilation flow.",
+    "oxygen": "More oxygen in the air generally makes materials easier to ignite and makes flames burn faster.",
+    "pressure": "kPa is a unit of pressure. A lower cabin pressure with more oxygen is planned for exploration habitats so that spacewalks need less preparation.",
+    "burning_rate": "A droplet's burning rate constant says how fast the square of its diameter shrinks. A bigger value means the fuel is used up faster.",
+    "extinction": "A flame self-extinguishes when it goes out on its own while fuel is still left.",
+    "dilution": "Adding an inert gas such as carbon dioxide or helium dilutes the oxygen and can put a flame out.",
+    "gap": "A habitat's fire rules cannot rest on conditions in which nothing has ever been burned, so knowing what is untested matters.",
+    "prediction": "A model prediction is an estimate learned from past tests. It can only be trusted inside the range of conditions those tests covered.",
+    "correlation": "A rank correlation runs from -1 to 1. Near 1 means the two rise together, near -1 means one falls as the other rises, and near 0 means no clear link.",
+    "flags": "A flagged cell is one that looks wrong, such as text where a number belongs. It is marked, never changed.",
+}
+BACKGROUND_FOR = {
+    "investigation": ("microgravity",), "compare": ("microgravity", "oxygen"), "rank": ("oxygen", "pressure"),
+    "gaps": ("gap", "pressure"), "prediction": ("prediction",), "lab": ("burning_rate", "dilution"),
+    "similar": ("oxygen",), "pattern": ("correlation", "burning_rate"), "quality": ("flags",),
+    "earth": ("microgravity",), "overview": ("microgravity", "oxygen"),
+}  # fmt: skip
+
+# Questions offered as buttons, so a newcomer knows what is worth asking. Each can be answered from the page's facts.
+QUESTIONS = {
+    "investigation": ["What was actually burned?", "What changed between the tests?", "Why does this matter for a spacecraft?"],
+    "compare": ["Which one tested the highest oxygen?", "What do these have in common?", "How many tests did each one run?"],
+    "rank": ["Why is the first one ranked first?", "What does the gravity score mean?", "Is this NASA's ranking?"],
+    "gaps": ["What should be tested first, and why?", "Why do solid fuels score higher?", "What is the closest real test?"],
+    "prediction": ["How good is this model?", "Which real tests is it closest to?", "Is this a measurement?"],
+    "lab": ["What does the burning rate mean?", "How long does the flame last?", "Is this a real measurement?"],
+    "similar": ["How close is the closest test?", "What fuel did the closest test burn?", "Was anything not stated?"],
+    "pattern": ["Is there a trend here?", "Does one group behave differently?", "Does this prove cause and effect?"],
+    "quality": ["What kinds of problems were found?", "Which experiment has the most flagged cells?", "Was NASA's data changed?"],
+    "earth": ["Where is this used on Earth?", "Which experiments helped smoke detection?", "Are these NASA's own words?"],
+    "overview": ["What are the pillars?", "Which experiment ran the most tests?", "What kinds of fuel were burned?"],
+}
 
 
 def _env(name: str) -> str:
@@ -305,7 +351,138 @@ def _similar(params: dict) -> tuple[str, list[str]]:
     return "A search for the real tests closest to a set of conditions", lines
 
 
+SPOKEN_UNITS = {"%": "percent", "mm²/s": "square millimetres per second", "s": "seconds"}
+
+
+def _ranks(values: list[float]) -> list[float]:
+    order = sorted(range(len(values)), key=values.__getitem__)
+    ranks, start = [0.0] * len(values), 0
+    while start < len(order):
+        end = start
+        while end + 1 < len(order) and values[order[end + 1]] == values[order[start]]:
+            end += 1
+        for index in order[start : end + 1]:
+            ranks[index] = (start + end) / 2  # tied values share the average rank
+        start = end + 1
+    return ranks
+
+
+def rank_correlation(xs: list[float], ys: list[float]) -> float | None:
+    """Spearman's rank correlation, or None when either side does not vary."""
+    if len(xs) < 3 or len(set(xs)) < 2 or len(set(ys)) < 2:
+        return None
+    return statistics.correlation(_ranks(xs), _ranks(ys))
+
+
+def _trend(x_label: str, y_label: str, value: float | None) -> str:
+    if value is None:
+        return f"no trend can be measured, because {x_label} or {y_label} does not vary"
+    size = abs(value)
+    if size < 0.2:
+        return f"there is no clear trend between {x_label} and {y_label} (rank correlation {value:.2f})"
+    strength = "strong" if size >= 0.8 else "clear" if size >= 0.5 else "weak"
+    return (f"as {x_label} rises, {y_label} tends to {'rise' if value > 0 else 'fall'}. "
+            f"That is a {strength} trend (rank correlation {value:.2f})")  # fmt: skip
+
+
+def _pattern(params: dict) -> tuple[str, list[str]]:
+    from .routers import lab  # the pattern explorer's own rows, so the facts match the plot
+
+    data = lab._flex()
+    fields = {field["key"]: field for field in data["fields"]}
+    x, y = fields[str(params["x"])], fields[str(params["y"])]
+    group = "test_end" if params.get("group") == "test_end" else "fuel"
+    group_label = "how the test ended" if group == "test_end" else "fuel"
+    rows = [row for row in data["rows"] if isinstance(row.get(x["key"]), (int, float)) and isinstance(row.get(y["key"]), (int, float))]
+    x_name, y_name = x["label"].lower(), y["label"].lower()
+    unit = lambda field: SPOKEN_UNITS.get(field["unit"], field["unit"])  # noqa: E731
+    lines = [
+        f"The plot shows {y_name} against {x_name} for NASA's FLEX droplet tests. Each point is one real test, measured in microgravity.",
+        f"Tests that record both values: {len(rows)} of {len(data['rows'])}",
+    ]
+    if len(rows) < 5:
+        return f"A plot of {y_name} against {x_name} in the FLEX tests", lines + ["That is too few tests to describe a pattern."]
+    xs, ys = [row[x["key"]] for row in rows], [row[y["key"]] for row in rows]
+    lines += [
+        f"{x['label']} runs from {min(xs):.3g} to {max(xs):.3g} {unit(x)}. {y['label']} runs from {min(ys):.3g} to {max(ys):.3g} {unit(y)}",
+        f"Across all {len(rows)} tests, {_trend(x_name, y_name, rank_correlation(xs, ys))}",
+    ]
+    ordered = sorted(rows, key=lambda row: row[x["key"]])
+    low, high = ordered[: len(ordered) // 2], ordered[len(ordered) // 2 :]
+    if x["key"] != y["key"]:
+        lines.append(f"In the half of the tests with lower {x_name}, the median {y_name} is {statistics.median(r[y['key']] for r in low):.3g} {unit(y)}. "
+                     f"In the half with higher {x_name} it is {statistics.median(r[y['key']] for r in high):.3g} {unit(y)}")  # fmt: skip
+    for name in sorted({str(row[group]) for row in rows}):
+        part = [row for row in rows if str(row[group]) == name]
+        line = f"Points coloured by {group_label}, {name or 'not stated'}: {len(part)} tests, median {y_name} {statistics.median(r[y['key']] for r in part):.3g} {unit(y)}"
+        if len(part) >= 8 and x["key"] != y["key"]:
+            line += f". Within this group, {_trend(x_name, y_name, rank_correlation([r[x['key']] for r in part], [r[y['key']] for r in part]))}"
+        lines.append(line)
+    flagged = sum(1 for row in rows if row["flagged"])
+    if flagged:
+        lines.append(f"Points drawn hollow because their row has a flagged cell: {flagged}")
+    lines.append("This is a pattern in measured tests, not proof of cause. Other settings, such as the fuel, the diluent gas "
+                 "and the droplet size, also changed from test to test.")  # fmt: skip
+    return f"A plot of {y_name} against {x_name} in the FLEX tests", lines
+
+
+def _quality(params: dict) -> tuple[str, list[str]]:
+    found = quality.report()
+    lines = [
+        f"Table cells that look wrong: {len(found['flags'])}. They are flagged by this project's checks, not by NASA, and NASA's data is never changed.",
+        *(f"Check, {check['check'].replace('_', ' ')}: {check['count']} cells. {check['meaning']}" for check in found["checks"] if check["count"]),
+    ]
+    worst = sorted((entry for entry in found["investigations"] if entry["flags"]), key=lambda entry: -entry["flags"])
+    lines += [f"{entry['name']}: {entry['flags']} flagged cells in {entry['rows']} table rows" for entry in worst[:4]]
+    lines.append(f"Investigations with at least one flagged cell: {len(worst)}")
+    if found["not_tests"]:
+        lines.append(f"Table rows that are not tests, such as notes or blank separators, and are left out of every count: {len(found['not_tests'])}")
+    return "The data quality page, which lists table cells that look wrong", lines
+
+
+def _earth(params: dict) -> tuple[str, list[str]]:
+    found = earth.panel()
+    lines = [f"Every quote on this page is copied from the \"{found['field']}\" text of a NASA record. The grouping into themes is this project's."]
+    for theme in found["themes"]:
+        names = sorted({who["name"] for quote in theme["quotes"] for who in quote["investigations"]})
+        lines.append(f"Theme, {theme['label']}: {len(theme['quotes'])} quotes, from {', '.join(names[:5])}")
+        lines.append(f"A NASA quote under {theme['label']}: \"{_shorten(theme['quotes'][0]['text'], 230)}\"")
+    if found["spinoffs"]:
+        lines.append("Products from NASA's wider fire-safety work, which NASA does not tie to any one experiment here: "
+                     + ", ".join(entry["product"] for entry in found["spinoffs"]))  # fmt: skip
+    if found["not_quoted"]:
+        lines.append(f"Records in which no specific Earth use was found: {len(found['not_quoted'])}")
+    return "The On Earth page, which quotes what NASA says these experiments are good for on Earth", lines
+
+
+def _overview(params: dict) -> tuple[str, list[str]]:
+    entries = [entry for entry in store.investigations().values() if entry["in_scope"]]
+    wanted = params.get("fuel_class") or None
+    shown = [entry for entry in entries if not wanted or wanted == "all" or entry["fuel_class"] == wanted]
+    tests = lambda entry: sum(table["tests_counted"] for table in entry["tables"])  # noqa: E731
+    lines = [f"Combustion investigations from NASA's PSI repository on this page: {len(shown)}"
+             + (f", the ones that burned {wanted} fuels" if wanted and wanted != "all" else "")]  # fmt: skip
+    for pillar, description in catalog.PILLARS.items():
+        members = sorted((entry["name"] for entry in shown if catalog.PILLAR_OF[entry["psi_id"]][0] == pillar), key=len)
+        if members:
+            lines.append(f"Pillar {pillar}: {len(members)} investigations. {description} They include {', '.join(members[:4])}")
+    lines.append("The pillars are this project's grouping, taken from the challenge brief, and are not NASA's.")
+    classes = sorted({entry["fuel_class"] for entry in shown if entry["fuel_class"]})
+    lines.append("Fuel classes: " + ", ".join(f"{name} {sum(1 for entry in shown if entry['fuel_class'] == name)}" for name in classes))
+    for entry in sorted(shown, key=tests, reverse=True)[:3]:
+        lines.append(f"{entry['name']} ran {tests(entry)} tests, on {entry['fuel_class']} fuels")
+    without = sum(1 for entry in shown if not entry["tables"])
+    if without:
+        lines.append(f"Investigations with no test table, which are modelling or analysis studies: {without}")
+    lines.append("Every flight test here ran in microgravity. NASA has no combustion tests in partial gravity.")
+    return "The list of NASA's microgravity combustion investigations", lines
+
+
 KINDS = {
+    "pattern": _pattern,
+    "quality": _quality,
+    "earth": _earth,
+    "overview": _overview,
     "investigation": _investigation,
     "compare": _compare,
     "rank": _rank,
@@ -316,12 +493,19 @@ KINDS = {
 }
 
 
+def _speakable(text: str) -> str:
+    """One line with no dashes, which a voice reads badly: a range becomes "to" and an aside becomes a comma."""
+    text = re.sub(r"(?<=\d)\s*[–—]\s*(?=\d)", " to ", text)
+    text = re.sub(r"\s*[–—]\s*", ", ", text)
+    return " ".join(text.split())
+
+
 def check_script(answer: object, facts: list[str]) -> tuple[dict | None, str]:
     """The cleaned script and highlights, or None and the rule the answer broke."""
     if not isinstance(answer, dict) or not isinstance(answer.get("script"), str) or not answer["script"].strip():
         return None, 'the answer must be a JSON object with a "script"'
-    script = " ".join(answer["script"].split())
-    highlights = [" ".join(item.split()) for item in answer.get("highlights") or [] if isinstance(item, str) and item.strip()]
+    script = _speakable(answer["script"])
+    highlights = [_speakable(item) for item in answer.get("highlights") or [] if isinstance(item, str) and item.strip()]
     if len(script.split()) > 130:
         return None, '"script" is longer than 110 words'
     if not 1 <= len(highlights) <= 4 or any(len(item.split()) > 16 for item in highlights):
@@ -348,12 +532,15 @@ def _parse(reply: str) -> object:
         return None
 
 
-@lru_cache(maxsize=256)
-def _brief(kind: str, params_json: str) -> dict:
+@lru_cache(maxsize=512)
+def _brief(kind: str, params_json: str, level: str = "student") -> dict:
     title, facts = KINDS[kind](json.loads(params_json))
     while len("\n".join(facts)) > MAX_FACT_CHARS and len(facts) > 4:
         facts = facts[:-1]
-    messages = [{"role": "system", "content": SCRIPT_SYSTEM},
+    # Kept apart from the facts on the page, so general science is never mistaken for a NASA measurement.
+    background = [BACKGROUND[name] for name in BACKGROUND_FOR.get(kind, ())]
+    facts = facts + [f"Background, general science and not from NASA's tables: {line}" for line in background]
+    messages = [{"role": "system", "content": f"{SCRIPT_SYSTEM}\n\n{AUDIENCES[level]}"},
                 {"role": "user", "content": f"THE PAGE: {title}\n\nFACTS\n" + "\n".join(f"- {line}" for line in facts)}]  # fmt: skip
     written, why = None, ""
     try:
@@ -374,24 +561,26 @@ def _brief(kind: str, params_json: str) -> dict:
         **(written or plain_script(title, facts)),
         "written_by": "model" if written else "code",
         "fallback_reason": None if written else why,
+        "questions": QUESTIONS.get(kind, []),
+        "audience": AUDIENCES[level],
     }
 
 
-def answer(kind: str, params: dict, question: str, history: list[dict]) -> dict:
+def answer(kind: str, params: dict, question: str, history: list[dict], level: str = "student") -> dict:
     """A typed question answered from the page's facts, for when the ElevenLabs conversation is not in use.
 
     Unlike a spoken answer, this one is checked before anyone hears it: a
     number that is in neither the facts nor the listener's own words is refused.
     """
-    brief = _brief(kind, json.dumps(params, sort_keys=True))
-    system = AGENT_PROMPT.replace("{{page}}", brief["title"]).replace("{{facts}}", "\n".join(brief["facts"]))
+    brief = _brief(kind, json.dumps(params, sort_keys=True), level)
+    system = AGENT_PROMPT.replace("{{page}}", f"{brief['title']}. {brief['audience']}").replace("{{facts}}", "\n".join(brief["facts"]))
     turns = [{"role": "assistant" if turn["role"] == "agent" else "user", "content": turn["text"]} for turn in history[-6:]]
     messages = [{"role": "system", "content": system}, {"role": "assistant", "content": brief["script"]},
                 *turns, {"role": "user", "content": question}]  # fmt: skip
     asked = " ".join([question, *(turn["text"] for turn in history if turn["role"] == "user")])
     allowed = set(_NUMBER.findall(" ".join(brief["facts"]) + " " + brief["script"] + " " + asked))
     for _ in range(2):  # one retry, telling the model which rule it broke
-        reply = " ".join(llm.chat(messages, max_tokens=220).split())
+        reply = _speakable(llm.chat(messages, max_tokens=220))
         invented = sorted(set(_NUMBER.findall(reply)) - allowed)
         if reply and not invented and not re.search(r"\bsafe\b", reply, re.I):
             return {"text": reply, "checked": True}
@@ -416,9 +605,10 @@ def conversation_token() -> tuple[str | None, str | None]:
         return None, "ElevenLabs did not answer, so the browser's own voice reads this. Type a question to ask one."
 
 
-def explain(kind: str, params: dict) -> dict:
-    brief = _brief(kind, json.dumps(params, sort_keys=True))
-    token, note = conversation_token()
+def explain(kind: str, params: dict, level: str = "student", speak: bool = True) -> dict:
+    """The explanation of a page. `speak` False is for showing it as text: no voice token is asked for."""
+    brief = _brief(kind, json.dumps(params, sort_keys=True), level)
+    token, note = conversation_token() if speak else (None, None)
     return {**brief, "voice": {"token": token} if token else None, "voice_note": note}
 
 

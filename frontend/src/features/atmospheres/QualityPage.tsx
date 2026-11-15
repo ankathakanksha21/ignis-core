@@ -3,6 +3,7 @@ import { useTitle } from '../../useTitle.ts'
 import { Link } from 'react-router-dom'
 import { useApi } from '../../api/useApi.ts'
 import { AtmospheresNav } from './AtmospheresNav.tsx'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 
 type Flag = { psi_id: string; name: string; file_name: string; row: number; column: string; cell: string; check: string; detail: string }
 
@@ -38,6 +39,9 @@ export function QualityPage() {
         <p className="lede">We flag them and never change NASA's data. The checks are ours.</p>
         <AtmospheresNav />
       </header>
+      <p className="voice-line">
+        <VoiceGuide kind="quality" params={{}} label="Explain these checks" />
+      </p>
 
       <h2>What was checked</h2>
       <table>

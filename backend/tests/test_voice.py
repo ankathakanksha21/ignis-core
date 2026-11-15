@@ -24,8 +24,8 @@ def no_keys(monkeypatch):
     voice._brief.cache_clear()
 
 
-def explain(kind, **params):
-    response = client.post("/api/voice/explain", json={"kind": kind, "params": params})
+def explain(kind, level="student", speak=True, **params):
+    response = client.post("/api/voice/explain", json={"kind": kind, "params": params, "level": level, "speak": speak})
     assert response.status_code == 200, response.text
     return response.json()
 
@@ -106,3 +106,41 @@ def test_a_typed_answer_is_checked_before_it_is_read_aloud(monkeypatch):
 
     monkeypatch.setattr(voice.llm, "chat", lambda messages, **kwargs: "It is 31337.")
     assert client.post("/api/voice/answer", json=body).json()["text"] == voice.NOT_COVERED
+
+
+def test_the_pattern_explanation_measures_the_trend_it_describes():
+    body = explain("pattern", x="o2_percent", y="burning_rate", group="fuel")
+    facts = " ".join(body["facts"])
+    assert "Tests that record both values: 258 of 274" in facts
+    assert "as oxygen rises, burning rate tends to rise" in facts and "rank correlation" in facts
+    assert "Points coloured by fuel, Heptane" in facts and "not proof of cause" in facts
+    assert voice.rank_correlation([1, 2, 3, 4], [10, 20, 30, 40]) == 1.0
+    assert voice.rank_correlation([1, 2, 3, 4], [4, 3, 2, 1]) == -1.0
+    assert voice.rank_correlation([1, 1, 1], [1, 2, 3]) is None
+
+
+def test_the_other_pages_have_facts_background_and_questions_to_ask():
+    quality = explain("quality")
+    assert quality["facts"][0].startswith("Table cells that look wrong: 70")
+    assert "NASA says" in explain("earth")["title"] and any("Theme, " in line for line in explain("earth")["facts"])
+    overview = explain("overview")
+    assert overview["facts"][0].endswith(": 24") and any("SPICE ran 469 tests" in line for line in overview["facts"])
+    assert len(overview["questions"]) == 3
+    # Background is general science, so it is labelled and carries no measured value.
+    background = [line for line in overview["facts"] if line.startswith("Background, general science")]
+    assert background and not any(NUMBER.search(line.replace("-1 to 1", "")) for line in background)
+
+
+def test_the_audience_changes_the_wording_and_never_the_facts(monkeypatch):
+    seen = []
+    monkeypatch.setattr(voice.llm, "chat", lambda messages, **kwargs: (seen.append(messages[0]["content"]), "{}")[1])
+    student, researcher = explain("gaps", habitat="moon"), explain("gaps", habitat="moon", level="researcher")
+    assert student["facts"] == researcher["facts"]
+    assert any("student" in prompt for prompt in seen) and any("researcher" in prompt for prompt in seen)
+    assert explain("gaps", habitat="moon", speak=False)["voice"] is None
+
+
+def test_dashes_are_taken_out_of_what_is_read_aloud():
+    facts = ["Oxygen in the atmosphere: 12 to 34 %"]
+    answer = {"script": "Oxygen ran 12–34 percent overall—a wide range.", "highlights": ["12 – 34 percent"]}
+    assert voice.check_script(answer, facts)[0] == {"script": "Oxygen ran 12 to 34 percent overall, a wide range.", "highlights": ["12 to 34 percent"]}

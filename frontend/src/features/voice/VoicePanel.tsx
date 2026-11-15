@@ -9,6 +9,8 @@ import {
 } from '@elevenlabs/react'
 import { api } from '../../api/client.ts'
 import icon from '../../assets/voice-guide.webp'
+import { useLevel } from './level.ts'
+import { LevelToggle } from './LevelToggle.tsx'
 import type { VoiceKind } from './VoiceGuide.tsx'
 
 // Shape returned by /api/voice/explain (backend/app/voice.py).
@@ -18,6 +20,10 @@ type Brief = {
   highlights: string[]
   facts: string[]
   written_by: 'model' | 'code'
+  /** Questions worth asking about this page, offered as buttons. */
+  questions: string[]
+  /** Who the wording is for, passed on to the agent. */
+  audience: string
   voice: { token: string } | null
   voice_note: string | null
 }
@@ -28,6 +34,19 @@ type Line = { role: 'agent' | 'user'; text: string; unchecked: string[] }
 const NUMBER = /\d+(?:\.\d+)?/g
 const INTERRUPT = 'Stop there. I have a question.'
 const flat = (text: string) => text.replace(/\s+/g, ' ').trim()
+
+function Chips({ questions, onPick, disabled }: { questions: string[]; onPick: (question: string) => void; disabled: boolean }) {
+  if (!questions?.length) return null
+  return (
+    <p className="voice-chips">
+      {questions.map((question) => (
+        <button key={question} type="button" disabled={disabled} onClick={() => onPick(question)}>
+          {question}
+        </button>
+      ))}
+    </p>
+  )
+}
 
 function Orb({ state }: { state: 'idle' | 'speaking' | 'listening' }) {
   return (
@@ -62,7 +81,7 @@ function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; on
       try {
         await startSession({
           conversationToken: token,
-          dynamicVariables: { narration: brief.script, page: brief.title, facts: brief.facts.join('\n') },
+          dynamicVariables: { narration: brief.script, page: `${brief.title}. ${brief.audience}`, facts: brief.facts.join('\n') },
         })
       } catch {
         if (live) onFail('The voice did not connect, so the browser reads this aloud and questions are typed.')
@@ -77,21 +96,19 @@ function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; on
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const send = (event: FormEvent) => {
-    event.preventDefault()
-    const text = typed.trim()
-    if (!text || status !== 'connected') return
+  const connected = status === 'connected'
+  const ask = (text: string) => {
+    if (!text || !connected) return
     sendUserMessage(text)
     onAsk(text)
+  }
+  const send = (event: FormEvent) => {
+    event.preventDefault()
+    ask(typed.trim())
     setTyped('')
   }
-
-  const connected = status === 'connected'
   // A sure way to cut in, for when the microphone does not pick the listener up over the speakers.
-  const interrupt = () => {
-    sendUserMessage(INTERRUPT)
-    onAsk(INTERRUPT)
-  }
+  const interrupt = () => ask(INTERRUPT)
   return (
     <>
       <div className="voice-status">
@@ -123,6 +140,7 @@ function Talk({ brief, token, onFail, onAsk }: { brief: Brief; token: string; on
           {isMuted ? 'Unmute' : 'Mute'}
         </button>
       </form>
+      <Chips questions={brief.questions} onPick={ask} disabled={!connected} />
     </>
   )
 }
@@ -151,9 +169,7 @@ function Read({ brief, note, onAsk }: { brief: Brief; note: string | null; onAsk
     if (able) window.speechSynthesis.cancel()
     setSpeaking(false)
   }
-  const send = async (event: FormEvent) => {
-    event.preventDefault()
-    const question = typed.trim()
+  const ask = async (question: string) => {
     if (!question || busy) return
     stop()
     setTyped('')
@@ -170,6 +186,10 @@ function Read({ brief, note, onAsk }: { brief: Brief; note: string | null; onAsk
     } finally {
       setBusy(false)
     }
+  }
+  const send = (event: FormEvent) => {
+    event.preventDefault()
+    void ask(typed.trim())
   }
 
   useEffect(() => {
@@ -201,6 +221,7 @@ function Read({ brief, note, onAsk }: { brief: Brief; note: string | null; onAsk
           Ask
         </button>
       </form>
+      <Chips questions={brief.questions} onPick={(question) => void ask(question)} disabled={busy} />
       {failed && <p role="alert">{failed}</p>}
       {note && <p className="voice-note">{note}</p>}
     </>
@@ -208,8 +229,10 @@ function Read({ brief, note, onAsk }: { brief: Brief; note: string | null; onAsk
 }
 
 export default function VoicePanel({ kind, params, onClose }: { kind: VoiceKind; params: Record<string, unknown>; onClose: () => void }) {
-  const request = JSON.stringify({ kind, params })
-  const [brief, setBrief] = useState<Brief | null>(null)
+  const level = useLevel()
+  const request = JSON.stringify({ kind, params, level })
+  const [loaded, setBrief] = useState<{ request: string; brief: Brief } | null>(null)
+  const brief = loaded?.request === request ? loaded.brief : null
   const [error, setError] = useState<string | null>(null)
   const [heard, setHeard] = useState<Line[]>([])
   const [fallback, setFallback] = useState<string | null>(null)
@@ -218,7 +241,7 @@ export default function VoicePanel({ kind, params, onClose }: { kind: VoiceKind;
   useEffect(() => {
     let live = true
     api<Brief>('/voice/explain', JSON.parse(request)).then(
-      (found) => live && setBrief(found),
+      (found) => live && (setBrief({ request, brief: found }), setHeard([]), setError(null)),
       (reason: Error) => live && setError(reason.message),
     )
     return () => {
@@ -266,6 +289,7 @@ export default function VoicePanel({ kind, params, onClose }: { kind: VoiceKind;
         <div>
           <p className="voice-eyebrow">Voice guide</p>
           <h2>{brief?.title ?? 'Preparing the explanation…'}</h2>
+          <LevelToggle />
         </div>
         <button type="button" onClick={onClose} aria-label="Close the voice guide">
           Close
@@ -277,13 +301,14 @@ export default function VoicePanel({ kind, params, onClose }: { kind: VoiceKind;
         <>
           {brief.voice && !fallback ? (
             <ConversationProvider
+              key={brief.script}
               onMessage={(payload) => add(payload.role === 'user' ? 'user' : 'agent', payload.message)}
               onError={() => setFallback('The voice connection failed, so the browser reads this aloud and questions are typed.')}
             >
               <Talk brief={brief} token={brief.voice.token} onFail={setFallback} onAsk={(text) => add('user', text)} />
             </ConversationProvider>
           ) : (
-            <Read brief={brief} note={fallback ?? brief.voice_note} onAsk={askTyped} />
+            <Read key={brief.script} brief={brief} note={fallback ?? brief.voice_note} onAsk={askTyped} />
           )}
 
           <ul className="voice-highlights">

@@ -6,7 +6,7 @@ import './voice.css'
 // The panel pulls in the ElevenLabs client, so it is loaded only when someone asks for an explanation.
 const VoicePanel = lazy(() => import('./VoicePanel.tsx'))
 
-export type VoiceKind = 'investigation' | 'compare' | 'rank' | 'gaps' | 'prediction' | 'lab' | 'similar'
+export type VoiceKind = 'investigation' | 'compare' | 'rank' | 'gaps' | 'prediction' | 'lab' | 'similar' | 'pattern' | 'quality' | 'earth' | 'overview'
 
 type Props = {
   kind: VoiceKind

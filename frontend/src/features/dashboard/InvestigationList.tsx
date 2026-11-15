@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTitle } from '../../useTitle.ts'
 import { useApi } from '../../api/useApi.ts'
+import { VoiceGuide } from '../voice/VoiceGuide.tsx'
 import { DashboardNav } from './DashboardNav.tsx'
 import { InvestigationCard } from './InvestigationCard.tsx'
 import { PILLAR_NAMES } from './format.ts'
@@ -26,6 +27,9 @@ export function InvestigationList() {
         </h1>
         <DashboardNav />
       </header>
+      <p className="voice-line">
+        <VoiceGuide kind="overview" params={{ fuel_class: fuelClass }} label="Explain these experiments" />
+      </p>
       <p className="filter">
         {classes.map((name) => (
           <button key={name} className={name === fuelClass ? 'on' : ''} onClick={() => setFuelClass(name)}>

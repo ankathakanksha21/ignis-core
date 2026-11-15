@@ -234,3 +234,71 @@
   color: var(--faint);
   font-size: 0.74rem;
 }
+
+/* Student or researcher: the wording changes, the facts do not. */
+.voice-level {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-top: 0.45rem;
+}
+
+.voice-level button {
+  padding: 0.15rem 0.65rem;
+  font-size: 0.72rem;
+}
+
+/* Questions worth asking, as buttons. */
+.voice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.voice-chips button {
+  padding: 0.25rem 0.7rem;
+  border-style: dashed;
+  font-size: 0.78rem;
+  text-align: left;
+}
+
+/* The written explanation that sits on a page. */
+.ai-explain {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 52rem;
+  margin: 1.2rem auto;
+  padding: 1.1rem 1.3rem 1.2rem;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.92rem;
+  justify-items: start;
+}
+
+.ai-explain > * {
+  margin: 0;
+}
+
+.ai-explain header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.ai-explain h3 {
+  margin: 0;
+  font: 500 0.95rem var(--font-display);
+}
+
+.ai-explain .voice-level {
+  margin-top: 0;
+}
+
+.ai-explain .voice-highlights {
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
